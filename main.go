@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"aws-lambda-extensions/go-example-extension/extension"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
 )
 
 var (

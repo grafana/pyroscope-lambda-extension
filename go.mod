@@ -1,3 +1,3 @@
-module aws-lambda-extensions/go-example-extension
+module github.com/pyroscope-io/pyroscope-lambda-extension
 
-go 1.14
+go 1.18
