@@ -7,3 +7,11 @@ build-GoExampleExtensionLayer:
 
 run-GoExampleExtensionLayer:
 	go run pyroscope-lambda-extension/main.go
+
+
+publish-dev: build
+	cd bin && zip -r extension.zip extensions && aws lambda publish-layer-version --layer-name "pyroscope-extension-test" --region=us-east-1 --zip-file "fileb://extension.zip"
+
+
+lambda-build:
+	cd hello-world && sam build

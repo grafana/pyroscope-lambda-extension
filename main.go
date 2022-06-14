@@ -13,16 +13,22 @@ import (
 	"syscall"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 )
 
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	printPrefix     = fmt.Sprintf("[%s]", extensionName)
+
+	//devMode = false
+	devMode = true
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	relay := relay.NewRelay()
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
@@ -33,14 +39,29 @@ func main() {
 		println(printPrefix, "Exiting")
 	}()
 
-	res, err := extensionClient.Register(ctx, extensionName)
-	if err != nil {
-		panic(err)
-	}
-	println(printPrefix, "Register response:", prettyPrint(res))
+	go func() {
+		err := relay.StartServer()
+		// TODO(eh-am): iirc this always fails
+		println(err)
+	}()
 
-	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx)
+	if !devMode {
+		res, err := extensionClient.Register(ctx, extensionName)
+		if err != nil {
+			panic(err)
+		}
+		println(printPrefix, "Register response:", prettyPrint(res))
+	}
+
+	if devMode {
+		select {
+		case <-ctx.Done():
+			return
+		}
+	} else {
+		// Will block until shutdown event is received or cancelled via the context.
+		processEvents(ctx)
+	}
 }
 
 func processEvents(ctx context.Context) {
