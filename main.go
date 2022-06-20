@@ -14,6 +14,7 @@ import (
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -28,7 +29,13 @@ var (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	relay := relay.NewRelay()
+	logger := logrus.New()
+	// TODO(eh-am): use an env var
+	logger.SetLevel(logrus.DebugLevel)
+
+	relay := relay.NewRelay(&relay.Config{
+		Address: "http://localhost:4050",
+	}, logger)
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)

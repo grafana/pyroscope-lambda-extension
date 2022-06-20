@@ -19,12 +19,17 @@ type Config struct {
 
 type Relay struct {
 	log    *logrus.Logger
-	config Config
+	config *Config
 	client *http.Client
 }
 
-func NewRelay() *Relay {
-	return &Relay{}
+func NewRelay(config *Config, logger *logrus.Logger) *Relay {
+	return &Relay{
+		config: config,
+		log:    logger,
+		// TODO(eh-am): improve this client
+		client: &http.Client{},
+	}
 }
 
 func (t Relay) StartServer() error {
@@ -41,7 +46,6 @@ func (t Relay) StartServer() error {
 }
 
 // ServeHTTP requests shadows traffic to the remote server
-// Then offloads to the original handler
 func (t Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r2, err := t.cloneRequest(r)
 	if err != nil {
@@ -88,9 +92,12 @@ func (t Relay) sendToRemote(_ http.ResponseWriter, r *http.Request) {
 	// needs to happen after
 	t.enhanceWithTags(r)
 
+	// TODO(eh-am): token could be setup in the proxy directly
 	if token != "" {
 		r.Header.Set("Authorization", "Bearer "+token)
 	}
+
+	// TODO(eh-am): check it's a request to /ingest?
 
 	t.log.Debugf("Making request to %s", r.URL.String())
 	res, err := t.client.Do(r)
@@ -105,7 +112,7 @@ func (t Relay) sendToRemote(_ http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO
+// TODO(eh-am): how to receive these tags?
 func (t Relay) enhanceWithTags(r *http.Request) {
 	appName := r.URL.Query().Get("name")
 
