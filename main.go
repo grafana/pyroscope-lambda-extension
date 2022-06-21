@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
@@ -22,73 +23,95 @@ var (
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
 	printPrefix     = fmt.Sprintf("[%s]", extensionName)
 
-	//devMode = false
-	devMode = true
+	// in dev mode there's no extension registration. useful for testing locally
+	devMode  = getEnvBool("PYROSCOPE_DEV_MODE")
+	logLevel = getEnvStr("PYROSCOPE_LOG_LEVEL")
+
+	// to where relay data to
+	remoteAddress = getEnvStr("PYROSCOPE_REMOTE_ADDRESS")
+
+	svcName = "pyroscope-lambda-ext-main"
 )
 
 func main() {
+	logger := initLogger()
+
 	ctx, cancel := context.WithCancel(context.Background())
 
-	logger := logrus.New()
-	// TODO(eh-am): use an env var
-	logger.SetLevel(logrus.DebugLevel)
-
-	relay := relay.NewRelay(&relay.Config{
-		Address: "http://localhost:4050",
-	}, logger)
-
+	// Register signals
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		s := <-sigs
+		logger.Infof("Received signal: '%s'. Exiting\n", s)
 		cancel()
-		println(printPrefix, "Received", s)
-		println(printPrefix, "Exiting")
 	}()
+
+	relay := relay.NewRelay(&relay.Config{
+		Address: remoteAddress,
+	}, logger)
 
 	go func() {
-		err := relay.StartServer()
-		// TODO(eh-am): iirc this always fails
-		println(err)
+		logger.Info("Starting Relay Server")
+		if err := relay.StartServer(); err != nil {
+			logger.Error(err)
+		}
 	}()
 
-	if !devMode {
-		res, err := extensionClient.Register(ctx, extensionName)
-		if err != nil {
-			panic(err)
-		}
-		println(printPrefix, "Register response:", prettyPrint(res))
-	}
-
 	if devMode {
-		select {
-		case <-ctx.Done():
-			return
-		}
+		runDevMode(ctx)
 	} else {
-		// Will block until shutdown event is received or cancelled via the context.
-		processEvents(ctx)
+		runProdMode(ctx, logger)
 	}
 }
 
-func processEvents(ctx context.Context) {
+func initLogger() *logrus.Entry {
+	// Initialize logger
+	logger := logrus.WithFields(logrus.Fields{"svc": svcName})
+	lvl, err := logrus.ParseLevel(logLevel)
+	if err != nil {
+		lvl = logrus.InfoLevel
+	}
+
+	logrus.SetLevel(lvl)
+	return logger
+}
+
+func runDevMode(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		return
+	}
+}
+
+func runProdMode(ctx context.Context, logger *logrus.Entry) {
+	res, err := extensionClient.Register(ctx, extensionName)
+	if err != nil {
+		panic(err)
+	}
+	logger.Debug("Register response", prettyPrint(res))
+
+	// Will block until shutdown event is received or cancelled via the context.
+	processEvents(ctx, logger)
+}
+func processEvents(ctx context.Context, log *logrus.Entry) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			println(printPrefix, "Waiting for event...")
+			log.Debug("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
-				println(printPrefix, "Error:", err)
-				println(printPrefix, "Exiting")
+				log.Error(err)
+				log.Error("Exiting")
 				return
 			}
-			println(printPrefix, "Received event:", prettyPrint(res))
+
+			log.Debug("Received event:", prettyPrint(res))
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
-				println(printPrefix, "Received SHUTDOWN event")
-				println(printPrefix, "Exiting")
+				log.Info("Received SHUTDOWN event. Exiting.")
 				return
 			}
 		}
@@ -101,4 +124,17 @@ func prettyPrint(v interface{}) string {
 		return ""
 	}
 	return string(data)
+}
+
+func getEnvStr(key string) string {
+	return os.Getenv(key)
+}
+func getEnvBool(key string) bool {
+	k := os.Getenv(key)
+	v, err := strconv.ParseBool(k)
+	if err != nil {
+		return false
+	}
+
+	return v
 }

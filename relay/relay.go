@@ -2,7 +2,6 @@ package relay
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,12 +17,14 @@ type Config struct {
 }
 
 type Relay struct {
-	log    *logrus.Logger
+	log    *logrus.Entry
 	config *Config
 	client *http.Client
 }
 
-func NewRelay(config *Config, logger *logrus.Logger) *Relay {
+func NewRelay(config *Config, logger *logrus.Entry) *Relay {
+	logger = logrus.WithFields(logrus.Fields{"svc": "pyroscope-lambda-ext-relay"})
+
 	return &Relay{
 		config: config,
 		log:    logger,
@@ -36,17 +37,24 @@ func (t Relay) StartServer() error {
 	mux := http.NewServeMux()
 	mux.Handle("/", t)
 
+	addr := "0.0.0.0:4040"
 	server := &http.Server{
 		Handler: mux,
-		Addr:    "0.0.0.0:4040",
+		Addr:    addr,
 	}
 
-	fmt.Println("starting server")
-	return server.ListenAndServe()
+	t.log.Debugf("Serving on %s", addr)
+	err := server.ListenAndServe()
+	if err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
 }
 
 // ServeHTTP requests shadows traffic to the remote server
 func (t Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	t.log.Trace("Cloning request")
 	r2, err := t.cloneRequest(r)
 	if err != nil {
 		t.log.Error("Failed to clone request", err)
@@ -54,7 +62,7 @@ func (t Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO(eh-am): put immediately in a queue and process later?
-	t.log.Debugf("Sending to remote")
+	t.log.Trace("Sending to remote")
 	t.sendToRemote(w, r2)
 
 	// TODO(eh-am): respond

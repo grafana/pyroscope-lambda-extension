@@ -9,10 +9,15 @@ run-GoExampleExtensionLayer:
 	go run pyroscope-lambda-extension/main.go
 
 
+.PHONY: publish-layer-dev
 publish-layer-dev: build
 	cd bin && zip -r extension.zip extensions && aws lambda publish-layer-version --layer-name "pyroscope-extension-test" --region=us-east-1 --zip-file "fileb://extension.zip"
 	./scripts/replace-version.sh
 
-
+.PHONY: lambda-build
 lambda-build:
 	cd hello-world && sam build
+
+.PHONY: lambda-local
+lambda-local: lambda-build
+	cd hello-world && sam local invoke --region=us-east-1
