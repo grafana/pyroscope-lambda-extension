@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/pyroscope-io/client/pyroscope"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 	"github.com/sirupsen/logrus"
@@ -29,6 +30,9 @@ var (
 
 	// to where relay data to
 	remoteAddress = getEnvStr("PYROSCOPE_REMOTE_ADDRESS")
+
+	// profile the extension?
+	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
 
 	svcName = "pyroscope-lambda-ext-main"
 )
@@ -57,6 +61,16 @@ func main() {
 			logger.Error(err)
 		}
 	}()
+
+	// Register pyroscope
+	if selfProfiling {
+		ps, _ := pyroscope.Start(pyroscope.Config{
+			ApplicationName: "pyroscope.lambda.extension",
+			ServerAddress:   remoteAddress,
+			Logger:          pyroscope.StandardLogger,
+		})
+		defer ps.Stop()
+	}
 
 	if devMode {
 		runDevMode(ctx)

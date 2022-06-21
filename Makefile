@@ -20,4 +20,4 @@ lambda-build:
 
 .PHONY: lambda-local
 lambda-local: lambda-build
-	cd hello-world && sam local invoke --region=us-east-1
+	cd hello-world && sam local invoke --region=us-east-1 --env-vars local.json

@@ -35,18 +35,9 @@ func slowFunction(c context.Context) {
 }
 
 func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
-	ps, err := pyroscope.Start(pyroscope.Config{
-		ApplicationName: "simple.golang.lambda",
-		ServerAddress:   "http://localhost:4040",
-		Logger:          pyroscope.StandardLogger,
-	})
-	if err != nil {
-		return "", err
-	}
-	defer ps.Stop()
 
 	i := 0
-	for i < 50 {
+	for i < 100 {
 		fastFunction(ctx)
 		slowFunction(ctx)
 		i++
@@ -56,5 +47,12 @@ func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
 }
 
 func main() {
+	ps, _ := pyroscope.Start(pyroscope.Config{
+		ApplicationName: "simple.golang.lambda",
+		ServerAddress:   "http://localhost:4040",
+		//		Logger:          pyroscope.StandardLogger,
+	})
+	defer ps.Stop()
+
 	lambda.Start(HandleRequest)
 }
