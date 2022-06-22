@@ -37,7 +37,7 @@ func slowFunction(c context.Context) {
 func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
 
 	i := 0
-	for i < 100 {
+	for i < 1000 {
 		fastFunction(ctx)
 		slowFunction(ctx)
 		i++

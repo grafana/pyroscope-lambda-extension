@@ -52,7 +52,8 @@ func main() {
 	}()
 
 	relay := relay.NewRelay(&relay.Config{
-		Address: remoteAddress,
+		Address:       remoteAddress,
+		ServerAddress: "0.0.0.0:4040",
 	}, logger)
 
 	go func() {
