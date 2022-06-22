@@ -2,28 +2,37 @@ package relay
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/pyroscope-io/pyroscope/pkg/storage/segment"
 	"github.com/sirupsen/logrus"
 )
 
+// Service Name used in logs
+const svcName = "pyroscope-lambda-ext-relay"
+
 type Config struct {
 	Address   string
 	AuthToken string
 	Tags      map[string]string
+
+	ServerAddress string
 }
 
 type Relay struct {
 	log    *logrus.Entry
 	config *Config
 	client *http.Client
+
+	server *http.Server
 }
 
 func NewRelay(config *Config, logger *logrus.Entry) *Relay {
-	logger = logrus.WithFields(logrus.Fields{"svc": "pyroscope-lambda-ext-relay"})
+	logger = logrus.WithFields(logrus.Fields{"svc": svcName})
 
 	return &Relay{
 		config: config,
@@ -33,18 +42,18 @@ func NewRelay(config *Config, logger *logrus.Entry) *Relay {
 	}
 }
 
-func (t Relay) StartServer() error {
+func (t *Relay) Start() error {
 	mux := http.NewServeMux()
 	mux.Handle("/", t)
 
-	addr := "0.0.0.0:4040"
-	server := &http.Server{
+	addr := t.config.ServerAddress
+	t.server = &http.Server{
 		Handler: mux,
 		Addr:    addr,
 	}
 
 	t.log.Debugf("Serving on %s", addr)
-	err := server.ListenAndServe()
+	err := t.server.ListenAndServe()
 	if err != http.ErrServerClosed {
 		return err
 	}
@@ -52,18 +61,30 @@ func (t Relay) StartServer() error {
 	return nil
 }
 
+func (t Relay) Stop() error {
+	// https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#runtimes-lifecycle-shutdown
+	shutdownLimit := time.Second * 2
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownLimit)
+	defer cancel()
+
+	// TODO(eh-am): wait for the inflight requests?
+
+	return t.server.Shutdown(ctx)
+}
+
 // ServeHTTP requests shadows traffic to the remote server
 func (t Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	t.log.Trace("Cloning request")
-	r2, err := t.cloneRequest(r)
-	if err != nil {
-		t.log.Error("Failed to clone request", err)
-		return
-	}
-
+	//	t.log.Trace("Cloning request")
+	//	r2, err := t.cloneRequest(r)
+	//	if err != nil {
+	//		t.log.Error("Failed to clone request", err)
+	//		return
+	//	}
+	//
 	// TODO(eh-am): put immediately in a queue and process later?
 	t.log.Trace("Sending to remote")
-	t.sendToRemote(w, r2)
+	t.sendToRemote(w, r)
 
 	// TODO(eh-am): respond
 }

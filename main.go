@@ -57,7 +57,7 @@ func main() {
 
 	go func() {
 		logger.Info("Starting Relay Server")
-		if err := relay.StartServer(); err != nil {
+		if err := relay.Start(); err != nil {
 			logger.Error(err)
 		}
 	}()
