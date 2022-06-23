@@ -42,26 +42,10 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Register signals
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
-	go func() {
-		s := <-sigs
-		logger.Infof("Received signal: '%s'. Exiting\n", s)
-		cancel()
-	}()
-
 	relay := relay.NewRelay(&relay.Config{
 		Address:       remoteAddress,
 		ServerAddress: "0.0.0.0:4040",
 	}, logger)
-
-	go func() {
-		logger.Info("Starting Relay Server")
-		if err := relay.Start(); err != nil {
-			logger.Error(err)
-		}
-	}()
 
 	// Register pyroscope
 	if selfProfiling {
@@ -72,6 +56,24 @@ func main() {
 		})
 		defer ps.Stop()
 	}
+
+	// Register signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		s := <-sigs
+		logger.Infof("Received signal: '%s'. Exiting\n", s)
+		relay.Stop()
+
+		cancel()
+	}()
+
+	go func() {
+		logger.Info("Starting Relay Server")
+		if err := relay.Start(); err != nil {
+			logger.Error(err)
+		}
+	}()
 
 	if devMode {
 		runDevMode(ctx)

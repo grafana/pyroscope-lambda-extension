@@ -26,9 +26,9 @@ Resources:
       Timeout: 60
       Description: hello world
       Layers:
-      - arn:aws:lambda:us-east-1:624335012362:layer:pyroscope-extension-test:27
+      - arn:aws:lambda:us-east-1:624335012362:layer:pyroscope-extension-test:30
       Environment:
         Variables:
           PYROSCOPE_LOG_LEVEL: trace
-          PYROSCOPE_REMOTE_ADDRESS:
+          PYROSCOPE_REMOTE_ADDRESS: 
           PYROSCOPE_SELF_PROFILING: true

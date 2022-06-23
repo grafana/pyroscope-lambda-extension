@@ -58,21 +58,21 @@ func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
 	//	}
 
 	//now := time.Now()
-	i := 0
-	//	for i < 10 {
-	fastFunction(ctx)
-	slowFunction(ctx)
-	i++
+	//	i := 0
+	//	//	for i < 10 {
+	//fastFunction(ctx)
+	//	slowFunction(ctx)
+	//	i++
 	//	}
 
 	//fmt.Println(time.Now().Sub(now))
 
-	//	i := 0
-	//	for i < 100 {
-	//		fastFunction(ctx)
-	//		slowFunction(ctx)
-	//		i++
-	//	}
+	i := 0
+	for i < 10 {
+		fastFunction(ctx)
+		slowFunction(ctx)
+		i++
+	}
 
 	//	ps.Stop()
 	// TODO: this doesn't seem to wait
@@ -85,8 +85,7 @@ func main() {
 		ApplicationName: "simple.golang.lambda",
 		//ServerAddress:   "http://192.168.0.136:4050",
 		ServerAddress: "http://localhost:4040",
-		//ServerAddress: "https://eo8m4nymx1a0ouk.m.pipedream.net",
-		Logger: pyroscope.StandardLogger,
+		Logger:        pyroscope.StandardLogger,
 	})
 
 	lambda.Start(HandleRequest)
