@@ -9,3 +9,14 @@ region = "us-east-1"
 capabilities = "CAPABILITY_IAM"
 image_repositories = []
 
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sam-app"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-ja9gd2d188hu"
+s3_prefix = "sam-app"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

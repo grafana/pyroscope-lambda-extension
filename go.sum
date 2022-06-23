@@ -26,6 +26,10 @@ github.com/prometheus/common v0.32.1 h1:hWIdL3N2HoUx3B8j3YN9mWor0qhY/NlEKZEaXxuI
 github.com/prometheus/procfs v0.6.0 h1:mxy4L2jP6qMonqmq+aTtOx1ifVWUgG/TAmntgbh3xv4=
 github.com/pyroscope-io/client v0.0.0-20211206204731-3fd0a4b8239c h1:QVplAdQO7l4v4b/C2ANubLOMHTSr+5VD5cFpjPgRCJ8=
 github.com/pyroscope-io/client v0.0.0-20211206204731-3fd0a4b8239c/go.mod h1:zRdQXIGxy0H2QbKEkCmZBR6KOLLIFYLWsdzVI0MRm2E=
+github.com/pyroscope-io/client v0.2.3 h1:6zczkFcjU3fH1dox4dtbY6obY40Ipgr2OHJwuA43O14=
+github.com/pyroscope-io/client v0.2.3/go.mod h1:zRdQXIGxy0H2QbKEkCmZBR6KOLLIFYLWsdzVI0MRm2E=
+github.com/pyroscope-io/client v0.2.4-0.20220607180407-0ba26860ce5b h1:5YuLgMAQ7XbW8Kmccwv0C1vkl85SG7ItLC8AdMtCFOs=
+github.com/pyroscope-io/client v0.2.4-0.20220607180407-0ba26860ce5b/go.mod h1:zRdQXIGxy0H2QbKEkCmZBR6KOLLIFYLWsdzVI0MRm2E=
 github.com/pyroscope-io/pyroscope v0.19.0 h1:X+LMFAGbte6s0c4Vcn6DyFmIXLqKHW8TwzbJAVQgkoE=
 github.com/pyroscope-io/pyroscope v0.19.0/go.mod h1:+cNmi/QB8HdIsdZ7QmuIRb3YLpFsI1rQ6F0okQ5foG8=
 github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=

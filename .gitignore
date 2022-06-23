@@ -13,3 +13,4 @@
 bin
 
 .aws-sam
+out.txt

@@ -68,7 +68,7 @@ func main() {
 		ps, _ := pyroscope.Start(pyroscope.Config{
 			ApplicationName: "pyroscope.lambda.extension",
 			ServerAddress:   remoteAddress,
-			Logger:          pyroscope.StandardLogger,
+			//		Logger:          pyroscope.StandardLogger,
 		})
 		defer ps.Stop()
 	}
@@ -76,7 +76,7 @@ func main() {
 	if devMode {
 		runDevMode(ctx)
 	} else {
-		runProdMode(ctx, logger)
+		runProdMode(ctx, logger, relay)
 	}
 }
 
@@ -99,7 +99,7 @@ func runDevMode(ctx context.Context) {
 	}
 }
 
-func runProdMode(ctx context.Context, logger *logrus.Entry) {
+func runProdMode(ctx context.Context, logger *logrus.Entry, relay *relay.Relay) {
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		panic(err)
@@ -107,9 +107,11 @@ func runProdMode(ctx context.Context, logger *logrus.Entry) {
 	logger.Debug("Register response", prettyPrint(res))
 
 	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx, logger)
+	processEvents(ctx, logger, relay)
 }
-func processEvents(ctx context.Context, log *logrus.Entry) {
+func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
+	log.Debug("Starting processing events")
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -119,6 +121,12 @@ func processEvents(ctx context.Context, log *logrus.Entry) {
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
 				log.Error(err)
+
+				err = relay.Stop()
+				if err != nil {
+					log.Error("Error while stopping server", err)
+				}
+
 				log.Error("Exiting")
 				return
 			}
@@ -127,6 +135,10 @@ func processEvents(ctx context.Context, log *logrus.Entry) {
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
 				log.Info("Received SHUTDOWN event. Exiting.")
+				err = relay.Stop()
+				if err != nil {
+					log.Error("Error while stopping server", err)
+				}
 				return
 			}
 		}

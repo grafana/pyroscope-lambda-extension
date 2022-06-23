@@ -22,13 +22,13 @@ Resources:
       Handler: main
       FunctionName: hello-world
       Runtime: go1.x
-      MemorySize: 64
+      MemorySize: 128
       Timeout: 60
       Description: hello world
       Layers:
-      - arn:aws:lambda:us-east-1:624335012362:layer:pyroscope-extension-test:19
+      - arn:aws:lambda:us-east-1:624335012362:layer:pyroscope-extension-test:27
       Environment:
         Variables:
-          PYROSCOPE_LOG_LEVEL: info
-          PYROSCOPE_REMOTE_ADDRESS: 
-          PYROSCOPE_SELF_PROFILING: false
+          PYROSCOPE_LOG_LEVEL: trace
+          PYROSCOPE_REMOTE_ADDRESS:
+          PYROSCOPE_SELF_PROFILING: true

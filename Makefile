@@ -18,6 +18,16 @@ publish-layer-dev: build
 lambda-build:
 	cd hello-world && sam build
 
-.PHONY: lambda-local
-lambda-local: lambda-build
-	cd hello-world && sam local invoke --region=us-east-1 --env-vars local.json
+.PHONY: lambda-local-invoke
+lambda-local-invoke: lambda-build
+	cd hello-world && sam local invoke --region=us-east-1 --env-vars local.json --shutdown
+
+.PHONY: lambda-local-start
+lambda-local-start: lambda-build
+	cd hello-world && sam local start-lambda --region=us-east-1 --env-vars local.json
+
+lambda-local-invoke-endpoint:
+	aws lambda invoke --function-name "HelloWorldFunction" --endpoint-url "http://127.0.0.1:3001" --no-verify-ssl out.txt --region=us-east-1
+
+lambda-deploy:
+	cd hello-world && sam build && sam deploy --no-confirm-changeset

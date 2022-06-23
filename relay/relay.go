@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -23,6 +24,7 @@ type Relay struct {
 	client *http.Client
 
 	server *http.Server
+	wg     sync.WaitGroup
 }
 
 func NewRelay(config *Config, logger *logrus.Entry) *Relay {
@@ -55,25 +57,37 @@ func (t *Relay) Start() error {
 	return nil
 }
 
-func (t Relay) Stop() error {
+func (t *Relay) Stop() error {
 	// https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#runtimes-lifecycle-shutdown
 	shutdownLimit := time.Second * 2
 
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownLimit)
 	defer cancel()
 
-	t.log.Debug("Shutting down with timeout of", shutdownLimit)
+	t.log.Debug("Shutting down with timeout of ", shutdownLimit)
+	t.wg.Wait()
+
 	// TODO(eh-am): wait for the inflight requests?
 	return t.server.Shutdown(ctx)
 }
 
 // ServeHTTP requests shadows traffic to the remote server
 func (t *Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// TODO(eh-am): put immediately in a queue and process later?
+	//	t.wg.Add(1)
+	//	defer t.wg.Done()
+
+	// TODO(eh-am):
+	// * add to a queue
+	// * respond immediately
+	//	go func() {
+	//		// TODO(eh-am): put immediately in a queue and process later?
 	t.log.Trace("Sending to remote")
 	t.sendToRemote(w, r)
+	t.log.Trace("Sent to remote")
+	//	}()
 
 	// TODO(eh-am): respond
+	w.WriteHeader(200)
 }
 
 func (t *Relay) sendToRemote(_ http.ResponseWriter, r *http.Request) {
