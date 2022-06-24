@@ -40,7 +40,13 @@ func NewRelay(config *Config, logger *logrus.Entry) *Relay {
 		config.NumWorkers = 4
 	}
 
-	return &Relay{
+	mux := http.NewServeMux()
+	server := &http.Server{
+		Handler: mux,
+		Addr:    config.ServerAddress,
+	}
+
+	relay := &Relay{
 		config: config,
 		log:    logger,
 		// TODO(eh-am): figure out a good default value?
@@ -49,38 +55,37 @@ func NewRelay(config *Config, logger *logrus.Entry) *Relay {
 
 		// TODO(eh-am): improve this client
 		client: &http.Client{},
+		server: server,
 	}
+
+	relay.startJobProcessing()
+
+	mux.Handle("/", relay)
+	return relay
 }
 
 func (r *Relay) handleJobs() {
 	for {
 		select {
 		case <-r.done:
-			r.wg.Done()
 			return
 		case job := <-r.jobs:
 			r.log.Debug("Processing request", job)
 			r.log.Trace("Relaying request to remote", job.URL.RawQuery)
+			r.wg.Add(1)
 			r.sendToRemote(job)
 			r.log.Trace("Finished relaying request to remote", job.URL.RawQuery)
 		}
 	}
 }
 
-func (t *Relay) Start() error {
-	mux := http.NewServeMux()
-	mux.Handle("/", t)
-
-	addr := t.config.ServerAddress
-	t.server = &http.Server{
-		Handler: mux,
-		Addr:    addr,
-	}
-
+func (t *Relay) startJobProcessing() {
 	t.log.Tracef("Starting job queue with %d workers", t.config.NumWorkers)
 	t.startJobs()
+}
 
-	t.log.Debugf("Serving on %s", addr)
+func (t *Relay) Start() error {
+	t.log.Debugf("Serving on %s", t.config.ServerAddress)
 	err := t.server.ListenAndServe()
 	if err != http.ErrServerClosed {
 		return err
@@ -90,7 +95,6 @@ func (t *Relay) Start() error {
 }
 
 func (r *Relay) startJobs() {
-	r.wg.Add(r.config.NumWorkers)
 	for i := 0; i < r.config.NumWorkers; i++ {
 		go r.handleJobs()
 	}
@@ -100,9 +104,11 @@ func (t *Relay) Stop() error {
 	// https://docs.aws.amazon.com/lambda/latest/dg/runtimes-extensions-api.html#runtimes-lifecycle-shutdown
 	shutdownLimit := time.Second * 2
 
-	// Close chnnale
+	// Close channel
 	close(t.done)
 
+	// TODO(eh-am): both shutdown server and workers
+	// and cancel based on the timeout
 	t.log.Info("Shutting down with timeout of ", shutdownLimit)
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownLimit)
 	defer cancel()
@@ -119,6 +125,8 @@ func (t *Relay) Stop() error {
 
 // ServeHTTP requests shadows traffic to the remote server
 func (t *Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	t.log.Trace("In handler")
+
 	// TODO(eh-am): in reality we only need to change the context
 	cloneReq, err := t.cloneRequest(r)
 	if err != nil {
@@ -126,6 +134,8 @@ func (t *Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}
 
+	//t.wg.Add(1)
+	//go t.sendToRemote(cloneReq)
 	select {
 	case t.jobs <- cloneReq:
 	default:
@@ -137,6 +147,7 @@ func (t *Relay) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Relay) sendToRemote(r *http.Request) {
+	defer t.wg.Done()
 	host := t.config.Address
 
 	u, _ := url.Parse(host)
@@ -165,6 +176,10 @@ func (t *Relay) sendToRemote(r *http.Request) {
 func (t *Relay) cloneRequest(r *http.Request) (*http.Request, error) {
 	// clones the request
 	r2 := r.Clone(context.Background())
+
+	if r.Body == nil {
+		return r2, nil
+	}
 
 	// r.Clone just copies the io.Reader, which means whoever reads first wins it
 	// Therefore we need to duplicate the body manually

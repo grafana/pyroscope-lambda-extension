@@ -6,15 +6,22 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
+var logger *logrus.Entry
+
+func init() {
+	logger = noopLogger()
+}
+
 func TestRelay(t *testing.T) {
-	logger := noopLogger()
 
 	endpoint := "/ingest?aggregationType=sum&from=1655819920&name=simple.golang.app-new%7B%7D&sampleRate=100&spyName=gospy&units=samples&until=1655819927"
 	u, err := url.Parse(endpoint)
@@ -43,6 +50,44 @@ func TestRelay(t *testing.T) {
 	assert.NoError(t, err)
 
 	r.ServeHTTP(httptest.NewRecorder(), req)
+}
+
+// This tests checks that upon shutdown, we wait for the job queue to drain
+func TestShutdown(t *testing.T) {
+	logger := logrus.New().WithFields(logrus.Fields{})
+	logrus.SetLevel(logrus.TraceLevel)
+
+	var wg sync.WaitGroup
+
+	// Simulate a slow remote server
+	remoteServer := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			wg.Done()
+			time.Sleep(time.Millisecond * 100)
+			w.WriteHeader(200)
+		}),
+	)
+
+	// Create a relay server
+	r := relay.NewRelay(&relay.Config{Address: remoteServer.URL, ServerAddress: ":0"}, logger)
+
+	req, err := http.NewRequest(http.MethodPost, "/", nil)
+	assert.NoError(t, err)
+
+	// Start the server
+	go func() {
+		err := r.Start()
+		assert.NoError(t, err)
+	}()
+
+	wg.Add(1)
+	r.ServeHTTP(httptest.NewRecorder(), req)
+
+	// Wait for the request to be processed
+	wg.Wait()
+
+	err = r.Stop()
+	assert.NoError(t, err)
 }
 
 func noopLogger() *logrus.Entry {
