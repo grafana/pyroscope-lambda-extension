@@ -22,7 +22,6 @@ func init() {
 }
 
 func TestRelay(t *testing.T) {
-
 	endpoint := "/ingest?aggregationType=sum&from=1655819920&name=simple.golang.app-new%7B%7D&sampleRate=100&spyName=gospy&units=samples&until=1655819927"
 	u, err := url.Parse(endpoint)
 	assert.NoError(t, err)
@@ -88,13 +87,6 @@ func TestShutdown(t *testing.T) {
 
 	err = r.Stop()
 	assert.NoError(t, err)
-}
-
-func noopLogger() *logrus.Entry {
-	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
-
-	return logger.WithFields(logrus.Fields{})
 }
 
 func readTestdataFile(t *testing.T, name string) []byte {

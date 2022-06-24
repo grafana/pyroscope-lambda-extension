@@ -41,6 +41,25 @@ func NewRemoteQueue(log *logrus.Entry, config *RemoteQueueCfg, relayer Relayer) 
 	}
 }
 
+func (r *RemoteQueue) Start() error {
+	for i := 0; i < r.config.NumWorkers; i++ {
+		go r.handleJobs()
+	}
+	return nil
+}
+
+// Stop signals for the workers to not handle any more jobs
+// Then waits for existing jobs to finish
+func (r *RemoteQueue) Stop() error {
+	close(r.done)
+
+	r.log.Debug("Waiting for pending jobs to finish...")
+	r.wg.Wait()
+	r.log.Debug("Requests finished.")
+
+	return nil
+}
+
 // Upload adds a request to the queue to be processed later
 func (r *RemoteQueue) Upload(req *http.Request) {
 	select {
@@ -54,6 +73,7 @@ func (r *RemoteQueue) handleJobs() {
 	for {
 		select {
 		case <-r.done:
+			r.log.Debug("Channel closing. Not taking any more jobs")
 			return
 		case job := <-r.jobs:
 			log := r.log.WithField("path", job.URL.Path)
@@ -61,6 +81,7 @@ func (r *RemoteQueue) handleJobs() {
 			log.Trace("Relaying request to remote")
 			r.wg.Add(1)
 			err := r.relayer.Send(job)
+			r.wg.Done()
 
 			if err != nil {
 				log.Error("Failed to relay request. Dropping it", err)
@@ -69,21 +90,4 @@ func (r *RemoteQueue) handleJobs() {
 			}
 		}
 	}
-}
-
-func (r *RemoteQueue) Start() error {
-	for i := 0; i < r.config.NumWorkers; i++ {
-		go r.handleJobs()
-	}
-	return nil
-}
-
-func (r *RemoteQueue) Stop() error {
-	close(r.done)
-
-	r.log.Debug("Waiting for pending jobs to finish...")
-	r.wg.Wait()
-	r.log.Debug("Requests finished.")
-
-	return nil
 }
