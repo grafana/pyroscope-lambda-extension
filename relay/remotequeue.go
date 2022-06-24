@@ -1,6 +1,8 @@
 package relay
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -50,7 +52,8 @@ func (r *RemoteQueue) Start() error {
 
 // Stop signals for the workers to not handle any more jobs
 // Then waits for existing jobs to finish
-func (r *RemoteQueue) Stop() error {
+// Currently context is not used for anything
+func (r *RemoteQueue) Stop(ctx context.Context) error {
 	close(r.done)
 
 	r.log.Debug("Waiting for pending jobs to finish...")
@@ -60,13 +63,16 @@ func (r *RemoteQueue) Stop() error {
 	return nil
 }
 
-// Upload adds a request to the queue to be processed later
-func (r *RemoteQueue) Upload(req *http.Request) {
+// Send adds a request to the queue to be processed later
+func (r *RemoteQueue) Send(req *http.Request) error {
 	select {
 	case r.jobs <- req:
 	default:
 		r.log.Error("Request queue is full, dropping a profile job.")
+		return fmt.Errorf("Request queue is full")
 	}
+
+	return nil
 }
 
 func (r *RemoteQueue) handleJobs() {
@@ -84,7 +90,7 @@ func (r *RemoteQueue) handleJobs() {
 			r.wg.Done()
 
 			if err != nil {
-				log.Error("Failed to relay request. Dropping it", err)
+				log.Error("Failed to relay request: ", err)
 			} else {
 				log.Trace("Successfully relayed request to remote", job.URL.RawQuery)
 			}

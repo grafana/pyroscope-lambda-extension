@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -42,10 +43,20 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	relay := relay.NewRelay(&relay.Config{
-		Address:       remoteAddress,
-		ServerAddress: "0.0.0.0:4040",
-	}, logger)
+	// Start
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
+		Address: remoteAddress,
+	})
+
+	// TODO(eh-am): a find a better default for num of workers
+	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		r2 := r.Clone(context.Background())
+		queue.Send(r2)
+	}
+	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, handler)
+	relay := relay.NewRelay2(logger, &relay.Relay2Cfg{}, server, queue)
 
 	// Register pyroscope
 	if selfProfiling {
@@ -70,7 +81,9 @@ func main() {
 
 	go func() {
 		logger.Info("Starting Relay Server")
-		if err := relay.Start(); err != nil {
+
+		queue.Start()
+		if err := server.Start(); err != nil {
 			logger.Error(err)
 		}
 	}()
@@ -101,7 +114,7 @@ func runDevMode(ctx context.Context) {
 	}
 }
 
-func runProdMode(ctx context.Context, logger *logrus.Entry, relay *relay.Relay) {
+func runProdMode(ctx context.Context, logger *logrus.Entry, relay *relay.Relay2) {
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		panic(err)
@@ -111,7 +124,7 @@ func runProdMode(ctx context.Context, logger *logrus.Entry, relay *relay.Relay) 
 	// Will block until shutdown event is received or cancelled via the context.
 	processEvents(ctx, logger, relay)
 }
-func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
+func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay2) {
 	log.Debug("Starting processing events")
 
 	for {

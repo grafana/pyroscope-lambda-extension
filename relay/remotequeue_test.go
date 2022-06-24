@@ -1,6 +1,7 @@
 package relay_test
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"testing"
@@ -81,7 +82,7 @@ func TestRemoteQueueShutdown(t *testing.T) {
 
 		// This is a blocking operation
 		// We are waiting for the request to be finished
-		err = queue.Stop()
+		err = queue.Stop(context.TODO())
 		assert.NoError(t, err)
 
 		// Tell that we finished the shutdown
