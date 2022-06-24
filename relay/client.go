@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -18,6 +19,7 @@ var (
 type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
 	Address string
+	Timeout time.Duration
 }
 
 type RemoteClient struct {
@@ -27,11 +29,18 @@ type RemoteClient struct {
 }
 
 func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
+	timeout := config.Timeout
+	if timeout == 0 {
+		timeout = time.Second * 10
+	}
+
 	return &RemoteClient{
 		log:    log,
 		config: config,
 		// TODO(eh-am): improve this client with timeouts and whatnot
-		client: &http.Client{},
+		client: &http.Client{
+			Timeout: timeout,
+		},
 	}
 }
 

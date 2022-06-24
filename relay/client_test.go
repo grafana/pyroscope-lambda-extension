@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 	"github.com/stretchr/testify/assert"
@@ -73,6 +74,30 @@ func TestRemoteClientIncompleteRequestError(t *testing.T) {
 	assert.NoError(t, err)
 
 	// There should an error
+	err = remoteClient.Send(req)
+	assert.ErrorIs(t, err, relay.ErrMakingRequest)
+}
+
+func TestRemoteClientTimeout(t *testing.T) {
+	logger := noopLogger()
+
+	endpoint := "/ingest"
+
+	remoteServer := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(time.Second * 999)
+			w.WriteHeader(200)
+		}),
+	)
+
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
+		Address: remoteServer.URL,
+		Timeout: time.Millisecond * 50,
+	})
+
+	req, err := http.NewRequest(http.MethodPost, endpoint, nil)
+	assert.NoError(t, err)
+
 	err = remoteClient.Send(req)
 	assert.ErrorIs(t, err, relay.ErrMakingRequest)
 }
