@@ -1,0 +1,64 @@
+package relay
+
+import (
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+
+	"github.com/sirupsen/logrus"
+)
+
+var (
+	ErrMakingRequest = errors.New("failed to make request")
+	ErrNotOkResponse = errors.New("response not ok")
+)
+
+type RemoteClientCfg struct {
+	// Address refers to the remote address the request will be made to
+	Address string
+}
+
+type RemoteClient struct {
+	config *RemoteClientCfg
+	client *http.Client
+	log    *logrus.Entry
+}
+
+func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
+	return &RemoteClient{
+		log:    log,
+		config: config,
+		// TODO(eh-am): improve this client with timeouts and whatnot
+		client: &http.Client{},
+	}
+}
+
+// Send relays the request to the remote server
+func (r *RemoteClient) Send(req *http.Request) error {
+	host := r.config.Address
+
+	u, _ := url.Parse(host)
+
+	req.RequestURI = ""
+	req.URL.Host = u.Host
+	req.URL.Scheme = u.Scheme
+	req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
+	req.Host = u.Host
+
+	// TODO(eh-am): check it's a request to /ingest?
+	r.log.Debugf("Making request to %s", req.URL.String())
+	res, err := r.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w: %v", ErrMakingRequest, err)
+		return err
+	}
+
+	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
+		respBody, _ := ioutil.ReadAll(res.Body)
+		return fmt.Errorf("%w: %v", ErrNotOkResponse, fmt.Errorf("status code: '%d'. body: '%s'", res.StatusCode, respBody))
+	}
+
+	return nil
+}
