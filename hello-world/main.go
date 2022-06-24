@@ -37,36 +37,6 @@ func slowFunction(c context.Context) {
 }
 
 func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
-	//	defer func() {
-	//		fmt.Println("in defer, flushing")
-	//		ps.Flush()
-	//		//		ps.Stop()
-	//	}()
-	//	ps, _ := pyroscope.Start(pyroscope.Config{
-	//		ApplicationName: "simple.golang.lambda",
-	//		ServerAddress:   "http://192.168.0.136:4050",
-	//		//		ServerAddress:   "http://localhost:4040",
-	//		//	ServerAddress: "https://eo8m4nymx1a0ouk.m.pipedream.net",
-	//		Logger: pyroscope.StandardLogger,
-	//	})
-	//	defer ps.Stop()
-	//	i := 0
-	//	//	for i < 1000 {
-	//	fastFunction(ctx)
-	//	slowFunction(ctx)
-	//	i++
-	//	}
-
-	//now := time.Now()
-	//	i := 0
-	//	//	for i < 10 {
-	//fastFunction(ctx)
-	//	slowFunction(ctx)
-	//	i++
-	//	}
-
-	//fmt.Println(time.Now().Sub(now))
-
 	i := 0
 	for i < 10 {
 		fastFunction(ctx)
@@ -74,9 +44,6 @@ func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
 		i++
 	}
 
-	//	ps.Stop()
-	// TODO: this doesn't seem to wait
-	//	time.Sleep(time.Second * 10)
 	return fmt.Sprintf("Hello %s!", name.Name), nil
 }
 

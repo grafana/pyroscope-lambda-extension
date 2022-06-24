@@ -14,3 +14,6 @@ bin
 
 .aws-sam
 out.txt
+
+hello-world
+!hello-world/main.go

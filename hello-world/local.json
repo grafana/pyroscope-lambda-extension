@@ -1,7 +1,0 @@
-{
-  "Parameters": {
-    "PYROSCOPE_LOG_LEVEL": "trace",
-    "PYROSCOPE_REMOTE_ADDRESS": "http://192.168.0.136:4050",
-    "PYROSCOPE_SELF_PROFILING": true
-  }
-}
