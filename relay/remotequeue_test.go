@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,46 +42,42 @@ func TestRemoteQueue(t *testing.T) {
 }
 
 func TestRemoteQueueShutdown(t *testing.T) {
-	//logger := noopLogger()
-	logger := logrus.New().WithFields(logrus.Fields{})
-	logrus.SetLevel(logrus.TraceLevel)
+	logger := noopLogger()
 
 	req, err := http.NewRequest(http.MethodPost, "/", nil)
 	assert.NoError(t, err)
 
-	c := make(chan struct{})
-	done := make(chan struct{})
-	var wg sync.WaitGroup
+	reqBeingProcessed := make(chan struct{})
+	reqWaitingToBeRun := make(chan struct{})
 
-	requestSent := false
+	shutdown := make(chan struct{})
+	startShutdown := make(chan struct{})
+
+	jobProcessed := false
 	relayer := mockRelayer{
 		fn: func(r *http.Request) error {
-			wg.Done()
+			reqBeingProcessed <- struct{}{}
 
-			<-c
-			requestSent = true
+			// Let's block here until shutdown starts
+			// This is to simulate a long running process (eg a busy server)
+			<-reqWaitingToBeRun
+
+			jobProcessed = true
 			return nil
 		},
 	}
 
-	_ = requestSent
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{}, relayer)
-	wg.Add(1)
+	queue.Start()
 	// Send data to the queue
 	queue.Upload(req)
 
-	// Up to this point data is in queue but not processed yet
-	// Let's start the workers, so that the data should be processed
-	queue.Start()
+	// Wait for request to start to be processed
+	<-reqBeingProcessed
 
-	wg.Wait()
-	// At this point, the job is being "processed"
-
-	wg.Add(1)
-	// Let's stop, we should wait
 	go func() {
 		// Signal that this goroutine is running
-		wg.Done()
+		startShutdown <- struct{}{}
 
 		// This is a blocking operation
 		// We are waiting for the request to be finished
@@ -90,16 +85,15 @@ func TestRemoteQueueShutdown(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Tell that we finished the shutdown
-		done <- struct{}{}
+		shutdown <- struct{}{}
 	}()
 
-	wg.Wait()
-	c <- struct{}{}
+	<-startShutdown
 
-	<-done
+	// Tell the inflight job to continue running
+	reqWaitingToBeRun <- struct{}{}
 
-	assert.True(t, requestSent)
-
-	// After queue is closed, we should not ingest anything else
-	//	ingested := queue.Upload(req)
+	// Wait for shutdown
+	<-shutdown
+	assert.True(t, jobProcessed)
 }
