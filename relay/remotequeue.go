@@ -45,7 +45,8 @@ func NewRemoteQueue(log *logrus.Entry, config *RemoteQueueCfg, relayer Relayer) 
 
 func (r *RemoteQueue) Start() error {
 	for i := 0; i < r.config.NumWorkers; i++ {
-		go r.handleJobs()
+		i := i
+		go r.handleJobs(i)
 	}
 	return nil
 }
@@ -56,7 +57,7 @@ func (r *RemoteQueue) Start() error {
 func (r *RemoteQueue) Stop(ctx context.Context) error {
 	close(r.done)
 
-	r.log.Debug("Waiting for pending jobs to finish...")
+	r.log.Debugf("Waiting for %d pending jobs to finish...", len(r.jobs))
 	r.wg.Wait()
 	r.log.Debug("Requests finished.")
 
@@ -75,11 +76,11 @@ func (r *RemoteQueue) Send(req *http.Request) error {
 	return nil
 }
 
-func (r *RemoteQueue) handleJobs() {
+func (r *RemoteQueue) handleJobs(workerID int) {
 	for {
 		select {
 		case <-r.done:
-			r.log.Debug("Channel closing. Not taking any more jobs")
+			r.log.Tracef("Worker #%d closing. Not taking any more jobs", workerID)
 			return
 		case job := <-r.jobs:
 			log := r.log.WithField("path", job.URL.Path)
