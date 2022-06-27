@@ -4,9 +4,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -51,7 +53,12 @@ func main() {
 
 	// TODO(eh-am): move this handler somewhere else?
 	handler := func(w http.ResponseWriter, r *http.Request) {
+		// clones the request
 		r2 := r.Clone(context.Background())
+		// TODO(eh-am): handle error
+		body, _ := ioutil.ReadAll(r.Body)
+		r2.Body = ioutil.NopCloser(bytes.NewReader(body))
+
 		queue.Send(r2)
 	}
 	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, handler)
