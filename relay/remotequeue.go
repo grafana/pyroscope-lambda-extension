@@ -54,7 +54,7 @@ func (r *RemoteQueue) Start() error {
 // Stop signals for the workers to not handle any more jobs
 // Then waits for existing jobs to finish
 // Currently context is not used for anything
-func (r *RemoteQueue) Stop(ctx context.Context) error {
+func (r *RemoteQueue) Stop(_ context.Context) error {
 	close(r.done)
 
 	r.log.Debugf("Waiting for %d pending jobs to finish...", len(r.jobs))

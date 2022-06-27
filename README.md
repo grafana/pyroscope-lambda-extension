@@ -1,7 +1,12 @@
 # pyroscope-lambda-extension
 
 
+
 # Developing
+## Initial setup
+`make install-dev-tools`
+
+
 enable `devMode` so that you can run the relay server without running lambda
 
 ## Running the extension

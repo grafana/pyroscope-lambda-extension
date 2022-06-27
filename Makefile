@@ -31,3 +31,12 @@ lambda-local-invoke-endpoint:
 
 lambda-deploy:
 	cd hello-world && sam build && sam deploy --no-confirm-changeset
+
+.PHONY: lint
+lint: ## Run the lint across the codebase
+	go run "$(shell scripts/pinned-tools.sh github.com/mgechev/revive)" -config revive.toml -formatter stylish ./...
+
+.PHONY: install-dev-tools
+install-dev-tools: ## Install dev tools
+	cat tools/tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI {} go install {}
+

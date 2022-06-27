@@ -1,6 +1,6 @@
-// Orchestrator orchestrates the start/shutdown of underlying components
 package relay
 
+// Orchestrator orchestrates the start/shutdown of underlying components
 import (
 	"context"
 

@@ -61,7 +61,6 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	res, err := r.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrMakingRequest, err)
-		return err
 	}
 
 	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
