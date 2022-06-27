@@ -5,26 +5,25 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strconv"
 	"syscall"
 
-	"github.com/pyroscope-io/client/pyroscope"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/selfprofiler"
 	"github.com/sirupsen/logrus"
 )
 
 var (
 	extensionName   = filepath.Base(os.Args[0]) // extension name has to match the filename
 	extensionClient = extension.NewClient(os.Getenv("AWS_LAMBDA_RUNTIME_API"))
-	printPrefix     = fmt.Sprintf("[%s]", extensionName)
 
 	// in dev mode there's no extension registration. useful for testing locally
-	devMode  = getEnvBool("PYROSCOPE_DEV_MODE")
+	devMode = getEnvBool("PYROSCOPE_DEV_MODE")
+	// 'trace' | 'debug' | 'info' | 'error'
 	logLevel = getEnvStr("PYROSCOPE_LOG_LEVEL")
 
 	// to where relay data to
@@ -38,25 +37,16 @@ var (
 
 func main() {
 	logger := initLogger()
-
 	ctx, cancel := context.WithCancel(context.Background())
 
+	// Init components
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress})
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
 	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, ctrl.RelayRequest)
-	orch := relay.NewOrchestrator(logger, queue, server)
-
-	// Register pyroscope
-	if selfProfiling {
-		ps, _ := pyroscope.Start(pyroscope.Config{
-			ApplicationName: "pyroscope.lambda.extension",
-			ServerAddress:   remoteAddress,
-			//		Logger:          pyroscope.StandardLogger,
-		})
-		defer ps.Stop()
-	}
+	selfProfiler := selfprofiler.New(logger, selfProfiling, remoteAddress)
+	orch := relay.NewOrchestrator(logger, queue, server, selfProfiler)
 
 	// Register signals
 	sigs := make(chan os.Signal, 1)
@@ -65,23 +55,23 @@ func main() {
 		s := <-sigs
 		logger.Infof("Received signal: '%s'. Exiting\n", s)
 
-		err := orch.Shutdown()
-		if err != nil {
-			logger.Error(err)
-		}
 		cancel()
 	}()
 
+	// Start relay
 	go func() {
-		logger.Info("Starting extension")
+		logger.Info("Starting relay")
 		if err := orch.Start(); err != nil {
 			logger.Error(err)
 		}
 	}()
 
+	// Register extension
 	if devMode {
-		runDevMode(ctx)
+		// In dev mode we don't do anything
+		runDevMode(ctx, logger, orch)
 	} else {
+		// Register extension and start listening for events
 		runProdMode(ctx, logger, orch)
 	}
 }
@@ -98,9 +88,13 @@ func initLogger() *logrus.Entry {
 	return logger
 }
 
-func runDevMode(ctx context.Context) {
+func runDevMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestrator) {
 	select {
 	case <-ctx.Done():
+		err := orch.Shutdown()
+		if err != nil {
+			logger.Error(err)
+		}
 		return
 	}
 }
@@ -118,33 +112,34 @@ func runProdMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestr
 func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestrator) {
 	log.Debug("Starting processing events")
 
+	shutdown := func() {
+		err := orch.Shutdown()
+		if err != nil {
+			log.Error("Error while stopping server", err)
+		}
+		log.Error("Exiting")
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
+			shutdown()
 			return
 		default:
 			log.Debug("Waiting for event...")
 			res, err := extensionClient.NextEvent(ctx)
 			if err != nil {
-				log.Error(err)
+				log.Error("Failed to register extension", err)
 
-				err = orch.Shutdown()
-				if err != nil {
-					log.Error("Error while stopping server", err)
-				}
-
-				log.Error("Exiting")
+				shutdown()
 				return
 			}
 
 			log.Trace("Received event:", res)
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
-				log.Info("Received SHUTDOWN event. Exiting.")
-				err = orch.Shutdown()
-				if err != nil {
-					log.Error("Error while stopping server", err)
-				}
+				log.Debug("Received SHUTDOWN event")
+				shutdown()
 				return
 			}
 		}

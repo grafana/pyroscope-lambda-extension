@@ -1,4 +1,4 @@
-// Orchestrator orchestrates the start/shutdown
+// Orchestrator orchestrates the start/shutdown of underlying components
 package relay
 
 import (
@@ -9,17 +9,25 @@ import (
 )
 
 type Orchestrator struct {
-	log    *logrus.Entry
-	queue  *RemoteQueue
-	server *Server
+	log          *logrus.Entry
+	queue        *RemoteQueue
+	server       *Server
+	selfProfiler StartStopper
 }
 
-func NewOrchestrator(log *logrus.Entry, queue *RemoteQueue, server *Server) *Orchestrator {
+type StartStopper interface {
+	Start() error
+	Stop(context.Context) error
+}
+
+func NewOrchestrator(log *logrus.Entry, queue *RemoteQueue, server *Server, selfProfiler StartStopper) *Orchestrator {
 	log = log.WithField("comp", "orchestrator")
+
 	return &Orchestrator{
-		log:    log,
-		queue:  queue,
-		server: server,
+		log:          log,
+		queue:        queue,
+		server:       server,
+		selfProfiler: selfProfiler,
 	}
 }
 
@@ -28,6 +36,12 @@ func (o *Orchestrator) Start() error {
 	err := o.queue.Start()
 	if err != nil {
 		return err
+	}
+
+	o.log.Debug("Starting self profiler")
+	err = o.selfProfiler.Start()
+	if err != nil {
+		o.log.Error("Error starting self profiler", err)
 	}
 
 	o.log.Debug("Starting Server")
@@ -41,6 +55,9 @@ func (o *Orchestrator) Shutdown() error {
 	g, _ := errgroup.WithContext(context.Background())
 
 	// TODO(eh-am): validate this can indeed be done concurrently
+	g.Go(func() error {
+		return o.selfProfiler.Stop(ctx)
+	})
 	g.Go(func() error {
 		return o.server.Stop(ctx)
 	})
