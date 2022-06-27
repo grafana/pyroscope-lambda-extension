@@ -4,12 +4,8 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -45,24 +41,12 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	// Start
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress})
-
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
-
-	// TODO(eh-am): move this handler somewhere else?
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		// clones the request
-		r2 := r.Clone(context.Background())
-		// TODO(eh-am): handle error
-		body, _ := ioutil.ReadAll(r.Body)
-		r2.Body = ioutil.NopCloser(bytes.NewReader(body))
-
-		queue.Send(r2)
-	}
-	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, handler)
-	relay := relay.NewRelay(logger, &relay.RelayCfg{}, server, queue)
+	ctrl := relay.NewController(logger, queue)
+	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, ctrl.RelayRequest)
+	orch := relay.NewOrchestrator(logger, queue, server)
 
 	// Register pyroscope
 	if selfProfiling {
@@ -80,16 +64,17 @@ func main() {
 	go func() {
 		s := <-sigs
 		logger.Infof("Received signal: '%s'. Exiting\n", s)
-		relay.Stop()
 
+		err := orch.Shutdown()
+		if err != nil {
+			logger.Error(err)
+		}
 		cancel()
 	}()
 
 	go func() {
-		logger.Info("Starting Relay Server")
-
-		queue.Start()
-		if err := server.Start(); err != nil {
+		logger.Info("Starting extension")
+		if err := orch.Start(); err != nil {
 			logger.Error(err)
 		}
 	}()
@@ -97,7 +82,7 @@ func main() {
 	if devMode {
 		runDevMode(ctx)
 	} else {
-		runProdMode(ctx, logger, relay)
+		runProdMode(ctx, logger, orch)
 	}
 }
 
@@ -120,17 +105,17 @@ func runDevMode(ctx context.Context) {
 	}
 }
 
-func runProdMode(ctx context.Context, logger *logrus.Entry, relay *relay.Relay) {
+func runProdMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestrator) {
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		panic(err)
 	}
-	logger.Debug("Register response", prettyPrint(res))
+	logger.Trace("Register response", res)
 
 	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx, logger, relay)
+	processEvents(ctx, logger, orch)
 }
-func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
+func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestrator) {
 	log.Debug("Starting processing events")
 
 	for {
@@ -143,7 +128,7 @@ func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
 			if err != nil {
 				log.Error(err)
 
-				err = relay.Stop()
+				err = orch.Shutdown()
 				if err != nil {
 					log.Error("Error while stopping server", err)
 				}
@@ -152,11 +137,11 @@ func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
 				return
 			}
 
-			log.Debug("Received event:", prettyPrint(res))
+			log.Trace("Received event:", res)
 			// Exit if we receive a SHUTDOWN event
 			if res.EventType == extension.Shutdown {
 				log.Info("Received SHUTDOWN event. Exiting.")
-				err = relay.Stop()
+				err = orch.Shutdown()
 				if err != nil {
 					log.Error("Error while stopping server", err)
 				}
@@ -164,14 +149,6 @@ func processEvents(ctx context.Context, log *logrus.Entry, relay *relay.Relay) {
 			}
 		}
 	}
-}
-
-func prettyPrint(v interface{}) string {
-	data, err := json.MarshalIndent(v, "", "\t")
-	if err != nil {
-		return ""
-	}
-	return string(data)
 }
 
 func getEnvStr(key string) string {
