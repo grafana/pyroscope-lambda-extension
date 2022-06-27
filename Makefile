@@ -41,3 +41,7 @@ lint: ## Run the lint across the codebase
 install-dev-tools: ## Install dev tools
 	cat tools/tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI {} go install {}
 
+.PHONY: test
+test: ## Runs the test suite
+	go test -race $(shell go list ./...)
+

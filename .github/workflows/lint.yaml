@@ -1,4 +1,4 @@
-name: Go Linting
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  go-lint:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,4 +16,5 @@ jobs:
         with:
           go-version: '^1.18.0'
       - run: make install-dev-tools
+      - run: make test
       - run: make lint
