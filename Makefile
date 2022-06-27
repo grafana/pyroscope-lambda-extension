@@ -35,6 +35,7 @@ lambda-deploy:
 .PHONY: lint
 lint: ## Run the lint across the codebase
 	go run "$(shell scripts/pinned-tools.sh github.com/mgechev/revive)" -config revive.toml -formatter stylish ./...
+	staticcheck -f stylish ./...
 
 .PHONY: install-dev-tools
 install-dev-tools: ## Install dev tools

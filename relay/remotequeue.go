@@ -70,7 +70,7 @@ func (r *RemoteQueue) Send(req *http.Request) error {
 	case r.jobs <- req:
 	default:
 		r.log.Error("Request queue is full, dropping a profile job.")
-		return fmt.Errorf("Request queue is full")
+		return fmt.Errorf("request queue is full")
 	}
 
 	return nil

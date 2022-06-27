@@ -15,7 +15,7 @@ type SelfProfiler struct {
 }
 
 func New(log *logrus.Entry, enabled bool, remoteAddr string) *SelfProfiler {
-	log = logrus.WithField("comp", "self-profiler")
+	log = log.WithField("comp", "self-profiler")
 	return &SelfProfiler{log: log, enabled: enabled, remoteAddr: remoteAddr}
 }
 

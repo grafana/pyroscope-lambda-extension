@@ -13,8 +13,6 @@ type MyEvent struct {
 	Name string `json:"name"`
 }
 
-var ps *pyroscope.Profiler
-
 //go:noinline
 func work(n int) {
 	// revive:disable:empty-block this is fine because this is a example app, not real production code
@@ -38,21 +36,20 @@ func slowFunction(c context.Context) {
 
 func HandleRequest(ctx context.Context, name MyEvent) (string, error) {
 	i := 0
-	for i < 10 {
-		fastFunction(ctx)
-		slowFunction(ctx)
-		i++
-	}
+	//	for i < 10 {
+	fastFunction(ctx)
+	slowFunction(ctx)
+	i++
+	//	}
 
 	return fmt.Sprintf("Hello %s!", name.Name), nil
 }
 
 func main() {
-	ps, _ = pyroscope.Start(pyroscope.Config{
+	pyroscope.Start(pyroscope.Config{
 		ApplicationName: "simple.golang.lambda",
-		//ServerAddress:   "http://192.168.0.136:4050",
-		ServerAddress: "http://localhost:4040",
-		Logger:        pyroscope.StandardLogger,
+		ServerAddress:   "http://localhost:4040",
+		Logger:          pyroscope.StandardLogger,
 	})
 
 	lambda.Start(HandleRequest)

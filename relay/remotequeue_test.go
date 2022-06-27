@@ -38,7 +38,7 @@ func TestRemoteQueue(t *testing.T) {
 	queue.Start()
 
 	wg.Add(1)
-	queue.Upload(req)
+	queue.Send(req)
 	wg.Wait()
 }
 
@@ -71,7 +71,7 @@ func TestRemoteQueueShutdown(t *testing.T) {
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{}, relayer)
 	queue.Start()
 	// Send data to the queue
-	queue.Upload(req)
+	queue.Send(req)
 
 	// Wait for request to start to be processed
 	<-reqBeingProcessed

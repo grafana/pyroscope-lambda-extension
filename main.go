@@ -89,6 +89,7 @@ func initLogger() *logrus.Entry {
 }
 
 func runDevMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestrator) {
+	//lint:ignore S1000 we want to keep the same look and feel of runProdMode
 	select {
 	case <-ctx.Done():
 		err := orch.Shutdown()
