@@ -9,7 +9,9 @@ import (
 )
 
 type Orchestrator struct {
-	log          *logrus.Entry
+	log *logrus.Entry
+
+	// TODO(eh-am): take a generic startstopper
 	queue        *RemoteQueue
 	server       *Server
 	selfProfiler StartStopper

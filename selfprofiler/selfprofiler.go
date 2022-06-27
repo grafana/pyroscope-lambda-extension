@@ -19,6 +19,9 @@ func New(log *logrus.Entry, enabled bool, remoteAddr string) *SelfProfiler {
 	return &SelfProfiler{log: log, enabled: enabled}
 }
 
+// Start starts the self profiler
+// It should never return an error
+// TODO(eh-am): refactor this
 func (s *SelfProfiler) Start() error {
 	if !s.enabled {
 		return nil
@@ -31,8 +34,11 @@ func (s *SelfProfiler) Start() error {
 		Logger:        s.log,
 	})
 	s.ps = ps
+	if err != nil {
+		s.log.Error(err)
+	}
 
-	return err
+	return nil
 }
 
 func (s *SelfProfiler) Stop(context.Context) error {
