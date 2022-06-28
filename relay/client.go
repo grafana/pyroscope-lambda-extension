@@ -47,6 +47,7 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 
 // Send relays the request to the remote server
 func (r *RemoteClient) Send(req *http.Request) error {
+	defer req.Body.Close()
 	r.enhanceWithAuthToken(req)
 
 	host := r.config.Address
@@ -65,6 +66,7 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrMakingRequest, err)
 	}
+	defer res.Body.Close()
 
 	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
 		respBody, _ := ioutil.ReadAll(res.Body)
