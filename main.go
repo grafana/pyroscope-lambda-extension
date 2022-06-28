@@ -25,12 +25,12 @@ var (
 	devMode = getEnvBool("PYROSCOPE_DEV_MODE")
 
 	// 'trace' | 'debug' | 'info' | 'error'
-	logLevel = getEnvStr("PYROSCOPE_LOG_LEVEL")
+	logLevel = getEnvStrOr("PYROSCOPE_LOG_LEVEL", "info")
 
 	// to where relay data to
-	remoteAddress = getEnvStr("PYROSCOPE_REMOTE_ADDRESS")
+	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
-	authToken = getEnvStr("PYROSCOPE_AUTH_TOKEN")
+	authToken = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
 
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
@@ -149,8 +149,15 @@ func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestra
 	}
 }
 
-func getEnvStr(key string) string {
-	return os.Getenv(key)
+func getEnvStrOr(key string, fallback string) string {
+	k, ok := os.LookupEnv(key)
+
+	// has an explicit value
+	if ok && k != "" {
+		return k
+	}
+
+	return fallback
 }
 func getEnvBool(key string) bool {
 	k := os.Getenv(key)
