@@ -18,8 +18,9 @@ var (
 
 type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
-	Address string
-	Timeout time.Duration
+	Address   string
+	AuthToken string
+	Timeout   time.Duration
 }
 
 type RemoteClient struct {
@@ -46,6 +47,8 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 
 // Send relays the request to the remote server
 func (r *RemoteClient) Send(req *http.Request) error {
+	r.enhanceWithAuthToken(req)
+
 	host := r.config.Address
 
 	u, _ := url.Parse(host)
@@ -69,4 +72,15 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	}
 
 	return nil
+}
+
+// enhanceWithAuthToken adds an Authorization header if an AuthToken is supplied
+// note that if no authToken is set, it's possible that the Authorization header
+// from the original request is kept
+func (r *RemoteClient) enhanceWithAuthToken(req *http.Request) {
+	token := r.config.AuthToken
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 }

@@ -23,16 +23,17 @@ var (
 
 	// in dev mode there's no extension registration. useful for testing locally
 	devMode = getEnvBool("PYROSCOPE_DEV_MODE")
+
 	// 'trace' | 'debug' | 'info' | 'error'
 	logLevel = getEnvStr("PYROSCOPE_LOG_LEVEL")
 
 	// to where relay data to
 	remoteAddress = getEnvStr("PYROSCOPE_REMOTE_ADDRESS")
 
+	authToken = getEnvStr("PYROSCOPE_AUTH_TOKEN")
+
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
-
-	svcName = "pyroscope-lambda-ext-main"
 )
 
 func main() {
@@ -40,12 +41,13 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Init components
-	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress})
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken})
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
 	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, ctrl.RelayRequest)
-	selfProfiler := selfprofiler.New(logger, selfProfiling, remoteAddress)
+
+	selfProfiler := selfprofiler.New(logger, selfProfiling, remoteAddress, authToken)
 	orch := relay.NewOrchestrator(logger, queue, server, selfProfiler)
 
 	// Register signals
@@ -78,7 +80,7 @@ func main() {
 
 func initLogger() *logrus.Entry {
 	// Initialize logger
-	logger := logrus.WithFields(logrus.Fields{"svc": svcName})
+	logger := logrus.WithFields(logrus.Fields{"svc": "pyroscope-lambda-ext-main"})
 	lvl, err := logrus.ParseLevel(logLevel)
 	if err != nil {
 		lvl = logrus.InfoLevel

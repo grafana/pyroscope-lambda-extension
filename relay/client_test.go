@@ -19,7 +19,7 @@ func TestRemoteClient(t *testing.T) {
 	u, err := url.Parse(endpoint)
 	assert.NoError(t, err)
 	profile := readTestdataFile(t, "testdata/profile.pprof")
-	authorizationHeader := "Bearer 123"
+	authToken := "123"
 
 	remoteServer := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -30,15 +30,14 @@ func TestRemoteClient(t *testing.T) {
 			body.ReadFrom(r.Body)
 			assert.Equal(t, profile, body.Bytes(), "body is mirrored")
 
-			assert.Equal(t, authorizationHeader, r.Header.Get("Authorization"), "auth header is mirrored")
+			assert.Equal(t, "Bearer "+authToken, r.Header.Get("Authorization"), "auth header is mirrored")
 		}),
 	)
 
-	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteServer.URL})
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteServer.URL, AuthToken: "123"})
 
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(profile))
 	assert.NoError(t, err)
-	req.Header.Set("Authorization", authorizationHeader)
 
 	err = remoteClient.Send(req)
 	assert.NoError(t, err)
