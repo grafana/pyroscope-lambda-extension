@@ -51,3 +51,6 @@ install-dev-tools: ## Install dev tools
 test: ## Runs the test suite
 	go test -race $(shell go list ./...)
 
+.PHONY: shellcheck
+shellcheck: ## runs shellcheck against all script files
+	shellcheck ./scripts/*.sh
