@@ -9,6 +9,8 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    matrix:
+      architecture: [ amd64, arm64 ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
