@@ -47,7 +47,9 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 
 // Send relays the request to the remote server
 func (r *RemoteClient) Send(req *http.Request) error {
-	defer req.Body.Close()
+	if req.Body != nil {
+		defer req.Body.Close()
+	}
 	r.enhanceWithAuthToken(req)
 
 	host := r.config.Address

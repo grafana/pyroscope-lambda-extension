@@ -9,8 +9,10 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    matrix:
-      architecture: [ amd64, arm64 ]
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [amd64, arm64]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -22,3 +24,7 @@ jobs:
 
       - run: make test
       - run: make lint
+      - if: ${{ matrix.architecture == 'arm64' }}
+        run: make build-arm
+      - if: ${{ matrix.architecture == 'amd64' }}
+        run: make build-amd
