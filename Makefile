@@ -1,11 +1,20 @@
 build: build-amd
 
 build-amd:
-	GOOS=linux GOARCH=amd64 go build -o bin/extensions/pyroscope-lambda-extension main.go
+	GOOS=linux GOARCH=amd64 go build -o bin/x86_64/extensions/pyroscope-lambda-extension-x86_64 main.go
 
 build-arm:
-	GOOS=linux GOARCH=arm64 go build -o bin/extensions/pyroscope-lambda-extension main.go
+	GOOS=linux GOARCH=arm64 go build -o bin/arm64/extensions/pyroscope-lambda-extension-amd64 main.go
 
+.PHONY: clean
+clean:
+	rm -Rf bin/
+
+package-amd:
+	cd bin/x86_64 && zip -r extension.zip extensions
+
+package-arm:
+	cd bin/arm64 && zip -r extension.zip extensions
 
 build-GoExampleExtensionLayer:
 	GOOS=linux GOARCH=amd64 go build -o $(ARTIFACTS_DIR)/extensions/pyroscope-lambda-extension main.go
