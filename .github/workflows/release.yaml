@@ -11,6 +11,9 @@ on:
       environment:
         type: string
         default: DEV
+      # the release tag automatically created
+      tag_name:
+        type: string
 
 jobs:
   publish:
@@ -25,7 +28,7 @@ jobs:
       - run: make package-amd
       - run: make package-arm
       # Release the lambda extension and update the github release
-      - run: deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-lambda-extension --log-level=DEBUG --table-file=release.tmp.md
+      - run: deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-lambda-extension --log-level=DEBUG --table-file=release.tmp.md --dry-run=false
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -34,6 +37,7 @@ jobs:
         uses: tubone24/update_release@v1.3.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag_name }}
         with:
           body_path: release.tmp.md
           is_append_body: true
