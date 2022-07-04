@@ -5,7 +5,12 @@ on:
   release:
     types: [published]
   # for manual invokations
-  workflow_dispatch: true
+  workflow_dispatch:
+    # not really used
+    inputs:
+      environment:
+        type: string
+        default: DEV
 
 jobs:
   publish:
