@@ -244,6 +244,7 @@ if (import.meta.main) {
   if (y.dryRun) {
     console.log(releaseTable);
   } else {
+    log.debug(releaseTable);
     await Deno.writeTextFile(y.tableFile, releaseTable);
   }
 }
