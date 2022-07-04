@@ -1,0 +1,18 @@
+# We need to lint commits since they are used to generate changelogs
+name: Lint Commit Messages
+
+on: [pull_request]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [amd64]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # Required since we fetch a list of commits
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v5
