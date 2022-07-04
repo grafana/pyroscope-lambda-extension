@@ -17,7 +17,6 @@ jobs:
       - run: make build-arm
       - run: make package-amd
       - run: make package-arm
-      - name:
       # Release the lambda extension and update the github release
       - run: deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-lambda-extension --log-level=debug --table-file=release.tmp.md
         env:
