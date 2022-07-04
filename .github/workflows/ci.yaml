@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [amd64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: asdf_install
+        uses: asdf-vm/actions/install@v1
+      - run: make install-dev-tools
+      # Make asdf aware of globally installed binaries
+      - run: asdf reshim
+
+      - run: make test
+      - run: make lint
+      - if: ${{ matrix.architecture == 'arm64' }}
+        run: make build-arm
+      - if: ${{ matrix.architecture == 'amd64' }}
+        run: make build-amd
+
+  check-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: asdf_install
+        uses: asdf-vm/actions/install@v1
+      - run: make shellcheck

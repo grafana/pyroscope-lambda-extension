@@ -1,0 +1,4 @@
+golang 1.18
+shellcheck 0.8.0
+jq 1.6
+deno 1.23.2

@@ -1,0 +1,30 @@
+name: Release
+
+# The release should be created by release-please
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: asdf_install
+        uses: asdf-vm/actions/install@v1
+      - run: make clean
+      - run: make build-amd
+      - run: make build-arm
+      - run: make package-amd
+      - run: make package-arm
+      - name:
+      # Release the lambda extension and update the github release
+      - run: deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-lambda-extension --log-level=debug --table-file=release.tmp.md
+      - name: update release
+        id: update_release
+        uses: tubone24/update_release@v1.3.1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          body_path: release.tmp.md
+          is_append_body: true
