@@ -1,28 +1,29 @@
 import yargs from "https://deno.land/x/yargs@v17.5.1-deno/deno.ts";
 import * as log from "https://deno.land/std@0.146.0/log/mod.ts";
 
+type Arch = "x86_64" | "arm64";
 // Not all regions support multi architecture
 // Best way I found to find them is to access
 // https://us-east-1.console.aws.amazon.com/lambda/home?region=us-east-1#/create/layer
 // per region
-const regions = [
-  { region: "eu-north-1", arch: false },
-  { region: "ap-south-1", arch: true },
-  { region: "eu-west-3", arch: false },
-  { region: "eu-west-2", arch: true },
-  { region: "eu-west-1", arch: true },
-  { region: "ap-northeast-3", arch: true },
-  { region: "ap-northeast-2", arch: true },
-  { region: "ap-northeast-1", arch: true },
-  { region: "sa-east-1", arch: false },
-  { region: "ca-central-1", arch: false },
-  { region: "ap-southeast-1", arch: true },
-  { region: "ap-southeast-2", arch: false },
-  { region: "eu-central-1", arch: true },
-  { region: "us-east-1", arch: true },
-  { region: "us-east-2", arch: true },
-  { region: "us-west-1", arch: false },
-  { region: "us-west-2", arch: true },
+const regions: { region: string; archs: Arch[] }[] = [
+  { region: "eu-north-1", archs: [] },
+  { region: "ap-south-1", archs: ["x86_64", "arm64"] },
+  { region: "eu-west-3", archs: [] },
+  { region: "eu-west-2", archs: ["x86_64", "arm64"] },
+  { region: "eu-west-1", archs: ["x86_64", "arm64"] },
+  { region: "ap-northeast-3", archs: ["x86_64", "arm64"] },
+  { region: "ap-northeast-2", archs: ["x86_64", "arm64"] },
+  { region: "ap-northeast-1", archs: ["x86_64", "arm64"] },
+  { region: "sa-east-1", archs: [] },
+  { region: "ca-central-1", archs: [] },
+  { region: "ap-southeast-1", archs: ["x86_64", "arm64"] },
+  { region: "ap-southeast-2", archs: [] },
+  { region: "eu-central-1", archs: ["x86_64", "arm64"] },
+  { region: "us-east-1", archs: ["x86_64", "arm64"] },
+  { region: "us-east-2", archs: ["x86_64", "arm64"] },
+  { region: "us-west-1", archs: [] },
+  { region: "us-west-2", archs: ["x86_64", "arm64"] },
 ];
 
 const y = yargs(Deno.args)
@@ -68,16 +69,16 @@ await log.setup({
   },
 });
 
-function getLayerName(name: string, type: "amd" | "arm") {
-  switch (type) {
-    case "amd": {
+function getLayerName(name: string, arch: Arch) {
+  switch (arch) {
+    case "x86_64": {
       return `${name}-x86_64`;
     }
-    case "arm": {
+    case "arm64": {
       return `${name}-arm64`;
     }
     default: {
-      throw new Error(`Unsupported type: '${type}'`);
+      throw new Error(`Unsupported arch: '${arch}'`);
     }
   }
 }
@@ -104,6 +105,7 @@ async function publishCmd(
   layerName: string,
   region: string,
   cwd: string,
+  arch?: string,
 ): Promise<{ version: string; layernArn: string; fullLayerName: string }> {
   if (y.dryRun) {
     return {
@@ -114,14 +116,20 @@ async function publishCmd(
     };
   }
 
-  const output = await runCommand([
+  let cmd = [
     "aws",
     "lambda",
     "publish-layer-version",
     `--layer-name=${layerName}`,
     `--region=${region}`,
     `--zip-file=fileb://extension.zip`,
-  ], { cwd });
+  ];
+
+  if (arch) {
+    cmd = cmd.concat([`--compatible-architectures=${arch}`]);
+  }
+
+  const output = await runCommand(cmd, { cwd });
 
   const parsed = JSON.parse(output);
   return {
@@ -132,6 +140,62 @@ async function publishCmd(
     // eg: 'arn:aws:lambda:us-east-1:myacc:layer:pyroscope-test-x86_64:999'
     fullLayerName: parsed.LayerVersionArn,
   };
+}
+
+async function publishAmd(
+  name: string,
+  region: typeof regions[number]["region"],
+  withArch?: boolean,
+): Promise<{
+  layerName: string;
+  version: string;
+  layernArn: string;
+  fullLayerName: string;
+}> {
+  const cwd = "bin/x86_64";
+  const layerName = getLayerName(name, "x86_64");
+  if (y.dryRun) {
+    return Promise.resolve({
+      layerName,
+      version: "999",
+      layernArn: `arn:aws:lambda:${region}:myacc:layer:${layerName}`,
+      fullLayerName: `arn:aws:lambda:${region}:myacc:layer:${layerName}:999`,
+    });
+  }
+
+  // For zones that only support x86_64, we don't pass an architecture
+  return {
+    ...(await publishCmd(
+      layerName,
+      region,
+      cwd,
+      withArch ? "x86_64" : undefined,
+    )),
+    layerName,
+  };
+}
+
+async function publishArm(
+  name: string,
+  region: typeof regions[number]["region"],
+): Promise<{
+  layerName: string;
+  version: string;
+  layernArn: string;
+  fullLayerName: string;
+}> {
+  const cwd = "bin/arm64";
+  const layerName = getLayerName(name, "arm64");
+  if (y.dryRun) {
+    return Promise.resolve({
+      layerName,
+      version: "999",
+      layernArn: `arn:aws:lambda:${region}:myacc:layer:${layerName}`,
+      fullLayerName: `arn:aws:lambda:${region}:myacc:layer:${layerName}:999`,
+    });
+  }
+
+  return { ...(await publishCmd(layerName, region, cwd, "arm64")), layerName };
 }
 
 async function makePublic(
@@ -170,41 +234,48 @@ async function makePublic(
 
 export async function run() {
   log.info("Publishing extension...");
-  const amd = await Promise.all(regions.map(async (r) => {
-    const cwd = "bin/x86_64";
-    const arch = "x86_64";
-    const layerName = getLayerName(y.name, "amd");
-    const region = r.region;
 
-    log.debug("Publishing", { layerName, region, arch });
-    const output = await publishCmd(layerName, region, cwd);
-    log.debug("Published", { ...output });
+  const all = (await Promise.all(regions.map(async (r) => {
+    log.debug(r);
 
-    return { layerName, region, arch, ...output };
-  }));
-  const arm = await Promise.all(
-    regions.filter((r) => r.arch).map(async (r) => {
-      const cwd = "bin/arm64";
-      const arch = "arm64";
-      const layerName = getLayerName(y.name, "arm");
-      const region = r.region;
+    // Since there's only a single architecture in this region
+    // We don't ask to specificy a specific arch
+    if (!r.archs.length) {
+      log.debug("Region has no arch, defaulting to x86_64");
+      const amd = await publishAmd(y.name, r.region, false);
+      return [{ ...amd, region: r.region, arch: "x86_64" }];
+    }
 
-      log.debug("Publishing");
-      log.debug({ layerName, region, arch });
-      const output = await publishCmd(layerName, region, cwd);
-      log.debug("Published");
-      log.debug({ ...output });
-
-      return { layerName, region, arch, ...output };
-    }),
-  );
-
-  const out = [...amd, ...arm];
+    return await Promise.all(r.archs.map(async (arch) => {
+      switch (arch) {
+        case "x86_64": {
+          log.debug("Publishing x86_64");
+          return {
+            ...(await publishAmd(y.name, r.region, true)),
+            region: r.region,
+            arch,
+          };
+        }
+        case "arm64": {
+          log.debug("Publishing arm64");
+          return {
+            ...(await publishArm(y.name, r.region)),
+            region: r.region,
+            arch,
+          };
+        }
+        default: {
+          throw new Error(`Invalid arch ${arch}`);
+        }
+      }
+    }));
+  }))).flat();
 
   log.info("Making extensions public...");
   Promise.all(
-    out.map(async ({ layerName, version, region }) => {
-      log.debug("Making it public", { layerName, version, region });
+    all.map(async ({ layerName, version, region }) => {
+      log.debug("Making it public");
+      log.debug({ layerName, version, region });
       const output = await makePublic({ layerName, version, region });
       log.debug("Done.");
       log.debug({ layerName, version, region });
@@ -213,7 +284,7 @@ export async function run() {
     }),
   );
 
-  return out.map(({ region, arch, fullLayerName }) => {
+  return all.map(({ region, arch, fullLayerName }) => {
     return {
       region,
       arch,
