@@ -30,18 +30,16 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       # use tag_name if available (ie manual invokation)
-      - name: update release
-        if: ${{ inputs.tag_name == '' }}
-        id: update_release
+      - if: ${{ inputs.tag_name == '' }}
+        id: update_release_auto
         uses: tubone24/update_release@v1.3.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           body_path: release.tmp.md
           is_append_body: true
-      - name: update release
-        if: ${{ inputs.tag_name != '' }}
-        id: update_release
+      - if: ${{ inputs.tag_name != '' }}
+        id: update_release_manual
         uses: tubone24/update_release@v1.3.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
