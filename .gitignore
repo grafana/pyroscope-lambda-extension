@@ -15,5 +15,7 @@ bin
 .aws-sam
 out.txt
 
-hello-world
-!hello-world/main.go
+examples/go
+!examples/go/main.go
+
+node_modules
