@@ -53,7 +53,7 @@ You can run the extension in dev mode. It will not register the extension.
 
 It's useful to test the relay server initialization.
 Keep in mind there's no lambda execution, therefore to test data is being relayed correctly you need
-to ingest manually.
+to ingest manually (hitting `http://localhost:4040/ingest`).
 
 `PYROSCOPE_DEV_MODE=true go run main.go`
 
@@ -74,7 +74,7 @@ If you are testing using the hello-world app, don't forget to update the version
 
 ## Other tips
 To test pushing data to a local pyroscope instance, you can set up in the lambda layer
-the ip address of your computer (eg http://192.168.1.30:4040)
+the ip address of your computer (eg `http://192.168.1.30:4040`)
 
 
 # Self hosting the extension
@@ -91,4 +91,9 @@ aws lambda publish-layer-version \
   --layer-name "pyroscope-lambda-extension" \
   --region=$YOUR_REGION \
   --zip-file "fileb://extension.zip"
+```
+
+# Publishing
+```
+deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-extension --dry-run=false
 ```
