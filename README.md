@@ -74,7 +74,7 @@ If you are testing using the hello-world app, don't forget to update the version
 
 ## Other tips
 To test pushing data to a local pyroscope instance, you can set up in the lambda layer
-the ip address of your computer (eg `http://192.168.1.30:4040`)
+the ip address of your computer (eg http://192.168.1.30:4040)
 
 
 # Self hosting the extension
