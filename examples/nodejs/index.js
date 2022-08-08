@@ -1,16 +1,16 @@
 const Pyroscope = require("@pyroscope/nodejs");
 
-//Pyroscope.init({
-//  serverAddress: "http://localhost:4040",
-//  appName: "myNodeService",
-//});
-//Pyroscope.start();
+Pyroscope.init({
+  serverAddress: "http://localhost:4040",
+  appName: "myNodeService",
+});
+Pyroscope.start();
 
-//function doWork(number) {
-//  for (let i = 0; i < number; i++) {}
-//}
-//
-exports.handler = (event, context) => {
+function doWork(number) {
+  for (let i = 0; i < number; i++) {}
+}
+
+exports.handler = async (event, context) => {
   try {
     response = {
       "statusCode": 200,
@@ -23,12 +23,8 @@ exports.handler = (event, context) => {
     return err;
   }
 
-  //  doWork(99999999);
-  //  doWork(99999999);
-  //  doWork(99999999);
-  //  doWork(99999999);
-  //  doWork(99999999);
-  //  doWork(99999999);
+  doWork(99999999);
+  doWork(99999999);
 
   return response;
 };
