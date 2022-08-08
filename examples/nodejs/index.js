@@ -2,7 +2,7 @@ const Pyroscope = require("@pyroscope/nodejs");
 
 Pyroscope.init({
   serverAddress: "http://localhost:4040",
-  appName: "myNodeService",
+  appName: "my-node-service",
 });
 Pyroscope.start();
 
