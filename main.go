@@ -31,8 +31,9 @@ var (
 	// to where relay data to
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
-	authToken = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
-	timeout   = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
+	authToken  = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
+	timeout    = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
+	numWorkers = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
 
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
@@ -45,7 +46,7 @@ func main() {
 	// Init components
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken, Timeout: timeout})
 	// TODO(eh-am): a find a better default for num of workers
-	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
+	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: numWorkers}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
 	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, ctrl.RelayRequest)
 
@@ -161,6 +162,7 @@ func getEnvStrOr(key string, fallback string) string {
 
 	return fallback
 }
+
 func getEnvBool(key string) bool {
 	k := os.Getenv(key)
 	v, err := strconv.ParseBool(k)
@@ -178,10 +180,27 @@ func getEnvDurationOr(key string, fallback time.Duration) time.Duration {
 	if ok && k != "" {
 		dur, err := time.ParseDuration(k)
 		if err != nil {
+			logrus.Warnf("invalid value for env var '%s': '%s' defaulting to '%s'", key, k, fallback)
 			return fallback
 		}
 
 		return dur
+	}
+
+	return fallback
+}
+
+func getEnvIntOr(key string, fallback int) int {
+	k, ok := os.LookupEnv(key)
+
+	// has an explicit value
+	if ok && k != "" {
+		val, err := strconv.Atoi(k)
+		if err != nil {
+			logrus.Warnf("invalid value for env var '%s': '%s' defaulting to '%d'", key, k, fallback)
+			return fallback
+		}
+		return val
 	}
 
 	return fallback
