@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
@@ -31,6 +32,7 @@ var (
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
 	authToken = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
+	timeout   = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
 
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
@@ -41,7 +43,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Init components
-	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken})
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken, Timeout: timeout})
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
@@ -167,4 +169,20 @@ func getEnvBool(key string) bool {
 	}
 
 	return v
+}
+
+func getEnvDurationOr(key string, fallback time.Duration) time.Duration {
+	k, ok := os.LookupEnv(key)
+
+	// has an explicit value
+	if ok && k != "" {
+		dur, err := time.ParseDuration(k)
+		if err != nil {
+			return fallback
+		}
+
+		return dur
+	}
+
+	return fallback
 }

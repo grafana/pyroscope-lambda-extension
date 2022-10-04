@@ -29,6 +29,7 @@ For a complete list of variables check the section below.
 | `PYROSCOPE_AUTH_TOKEN`     | `""`                             | authorization key (token authentication)       |
 | `PYROSCOPE_SELF_PROFILING` | `false`                          | whether to profile the extension itself or not |
 | `PYROSCOPE_LOG_LEVEL`      | `info`                           | `error` or `info` or `debug` or `trace`        |
+| `PYROSCOPE_TIMEOUT`        | `10s`                            | http client timeout ([go duration format](https://pkg.go.dev/time#Duration))      |
 
 # How it works
 The profiler will run as normal, and periodically will send data to the relay server (the server running at `http://localhost:4040`).

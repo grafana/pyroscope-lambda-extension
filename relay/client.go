@@ -38,7 +38,6 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 	return &RemoteClient{
 		log:    log,
 		config: config,
-		// TODO(eh-am): improve this client with timeouts and whatnot
 		client: &http.Client{
 			Timeout: timeout,
 		},
