@@ -43,7 +43,7 @@ func main() {
 	// Init components
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken})
 	// TODO(eh-am): a find a better default for num of workers
-	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 4}, remoteClient)
+	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: 5}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
 	server := relay.NewServer(logger, &relay.ServerCfg{ServerAddress: "0.0.0.0:4040"}, ctrl.RelayRequest)
 
