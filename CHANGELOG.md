@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.1.0...v1.2.0) (2022-10-04)
+
+
+### Features
+
+* allow NUM_WORKERS to be configurable ([#12](https://github.com/pyroscope-io/pyroscope-lambda-extension/issues/12)) ([efbe468](https://github.com/pyroscope-io/pyroscope-lambda-extension/commit/efbe4680175be80f4db2d0ce0e3b301443d8201e))
+* allow timeout to be configurable ([#16](https://github.com/pyroscope-io/pyroscope-lambda-extension/issues/16)) ([8f80d90](https://github.com/pyroscope-io/pyroscope-lambda-extension/commit/8f80d9071e352362df82dbecabb8b086494beaac))
+
 ## [1.1.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.0.1...v1.1.0) (2022-07-05)
 
 
