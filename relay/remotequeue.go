@@ -30,7 +30,7 @@ func NewRemoteQueue(log *logrus.Entry, config *RemoteQueueCfg, relayer Relayer) 
 	// Setup defaults
 	if config.NumWorkers == 0 {
 		// TODO(eh-am): figure out a good default value?
-		config.NumWorkers = 4
+		config.NumWorkers = 5
 	}
 
 	return &RemoteQueue{
