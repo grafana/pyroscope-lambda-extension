@@ -37,13 +37,12 @@ func (j *asyncJob) assertFinished() {
 }
 
 type flushTestHelper struct {
-	t          *testing.T
-	log        *logrus.Entry
-	responses  chan struct{}
-	requests   chan struct{}
-	req        *http.Request
-	queue      *relay.RemoteQueue
-	flushMutex sync.Mutex
+	t         *testing.T
+	log       *logrus.Entry
+	responses chan struct{}
+	requests  chan struct{}
+	req       *http.Request
+	queue     *relay.RemoteQueue
 }
 
 func newFlushMockRelay(t *testing.T) *flushTestHelper {
@@ -85,11 +84,11 @@ func (h *flushTestHelper) flushAsync() *asyncJob {
 
 func (h *flushTestHelper) sendAsync() *asyncJob {
 	return newAsyncJob(h.t, "send", func() {
-		h.queue.Send(h.req)
+		_ = h.queue.Send(h.req)
 	})
 }
 func (h *flushTestHelper) send() {
-	h.queue.Send(h.req)
+	_ = h.queue.Send(h.req)
 }
 
 func (h *flushTestHelper) step() {
@@ -105,7 +104,7 @@ func (h *flushTestHelper) assertRequestsProcessed(n int) {
 func TestFlushWaitsForAllEnqueuedRequests(t *testing.T) {
 	n := 3
 	h := newFlushMockRelay(t)
-	h.queue.Start()
+	_ = h.queue.Start()
 	for i := 0; i < n; i++ {
 		h.send()
 	}
@@ -127,7 +126,7 @@ func TestFlushWaitsForAllEnqueuedRequestsWhenQueueIsFullAndSomeAreDropped(t *tes
 	for i := 0; i < n; i++ { //send 30, 10 are dropped
 		h.send()
 	}
-	h.queue.Start()
+	_ = h.queue.Start()
 	f := h.flushAsync()
 	for i := 0; i < queueSize; i++ { //20 are processed
 		h.step()
@@ -140,7 +139,7 @@ func TestFlushWaitsForAllEnqueuedRequestsWhenQueueIsFullAndSomeAreDropped(t *tes
 
 func TestFlushWithQueueEmpty(t *testing.T) {
 	h := newFlushMockRelay(t)
-	h.queue.Start()
+	_ = h.queue.Start()
 	f := h.flushAsync()
 	f.assertFinished()
 	h.assertRequestsProcessed(0)
@@ -149,7 +148,7 @@ func TestFlushWithQueueEmpty(t *testing.T) {
 func TestFlushSendEventDuringFlushBlocks(t *testing.T) {
 	n := 3
 	h := newFlushMockRelay(t)
-	h.queue.Start()
+	_ = h.queue.Start()
 	for i := 0; i < n; i++ {
 		h.send()
 	}
