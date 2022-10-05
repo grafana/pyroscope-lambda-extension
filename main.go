@@ -38,7 +38,7 @@ var (
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
 
-	flushRelayQueue = getEnvBool("PYROSCOPE_FLUSH_RELAY_QUEUE")
+	flushOnInvoke = getEnvBool("PYROSCOPE_FLUSH_ON_INVOKE")
 )
 
 func main() {
@@ -151,7 +151,7 @@ func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestra
 				shutdown()
 				return
 			}
-			if res.EventType == extension.Invoke && flushRelayQueue {
+			if res.EventType == extension.Invoke && flushOnInvoke {
 				queue.Flush()
 			}
 		}
