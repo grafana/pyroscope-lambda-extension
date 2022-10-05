@@ -14,12 +14,14 @@ type RemoteQueueCfg struct {
 }
 
 type RemoteQueue struct {
-	config  *RemoteQueueCfg
-	jobs    chan *http.Request
-	done    chan struct{}
-	wg      sync.WaitGroup
-	log     *logrus.Entry
-	relayer Relayer
+	config     *RemoteQueueCfg
+	jobs       chan *http.Request
+	done       chan struct{}
+	wg         sync.WaitGroup
+	flushWG    sync.WaitGroup
+	flushGuard sync.Mutex
+	log        *logrus.Entry
+	relayer    Relayer
 }
 
 type Relayer interface {
@@ -66,14 +68,25 @@ func (r *RemoteQueue) Stop(_ context.Context) error {
 
 // Send adds a request to the queue to be processed later
 func (r *RemoteQueue) Send(req *http.Request) error {
+	r.flushGuard.Lock() // block if we are currently trying to Flush
+	defer r.flushGuard.Unlock()
+	r.flushWG.Add(1)
 	select {
 	case r.jobs <- req:
 	default:
+		r.flushWG.Done()
 		r.log.Error("Request queue is full, dropping a profile job.")
 		return fmt.Errorf("request queue is full")
 	}
 
 	return nil
+}
+func (r *RemoteQueue) Flush() {
+	r.log.Debugf("Flush: Waiting for enqueued jobs to finish")
+	r.flushGuard.Lock()
+	defer r.flushGuard.Unlock()
+	r.flushWG.Wait()
+	r.log.Debugf("Flush: Done")
 }
 
 func (r *RemoteQueue) handleJobs(workerID int) {
@@ -89,6 +102,7 @@ func (r *RemoteQueue) handleJobs(workerID int) {
 			r.wg.Add(1)
 			err := r.relayer.Send(job)
 			r.wg.Done()
+			r.flushWG.Done()
 
 			if err != nil {
 				log.Error("Failed to relay request: ", err)

@@ -2,12 +2,11 @@ package relay_test
 
 import (
 	"context"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"sync"
 	"testing"
-
-	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
-	"github.com/stretchr/testify/assert"
 )
 
 type mockRelayer struct {
