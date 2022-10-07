@@ -18,9 +18,10 @@ var (
 
 type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
-	Address   string
-	AuthToken string
-	Timeout   time.Duration
+	Address             string
+	AuthToken           string
+	Timeout             time.Duration
+	MaxIdleConnsPerHost int
 }
 
 type RemoteClient struct {
@@ -34,12 +35,17 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 	if timeout == 0 {
 		timeout = time.Second * 10
 	}
-
+	if config.MaxIdleConnsPerHost == 0 {
+		config.MaxIdleConnsPerHost = 5
+	}
 	return &RemoteClient{
 		log:    log,
 		config: config,
 		client: &http.Client{
 			Timeout: timeout,
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost: config.MaxIdleConnsPerHost,
+			},
 		},
 	}
 }
