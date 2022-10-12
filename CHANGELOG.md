@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.2.0...v1.3.0) (2022-10-12)
+
+
+### Features
+
+* flush queue before next event polling ([#18](https://github.com/pyroscope-io/pyroscope-lambda-extension/issues/18)) ([e5b06d2](https://github.com/pyroscope-io/pyroscope-lambda-extension/commit/e5b06d2e38d174daa52828e45fb7783700bd86ee))
+
+
+### Bug Fixes
+
+* configure MaxIdleConnsPerHost (was 2 by default) ([#19](https://github.com/pyroscope-io/pyroscope-lambda-extension/issues/19)) ([9214f26](https://github.com/pyroscope-io/pyroscope-lambda-extension/commit/9214f26e2e1b4ae460981ab1f09f01c6ac92f201))
+
 ## [1.2.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.1.0...v1.2.0) (2022-10-04)
 
 
