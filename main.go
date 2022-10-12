@@ -44,7 +44,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Init components
-	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteAddress, AuthToken: authToken, Timeout: timeout})
+	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
+		Address:             remoteAddress,
+		AuthToken:           authToken,
+		Timeout:             timeout,
+		MaxIdleConnsPerHost: numWorkers,
+	})
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: numWorkers}, remoteClient)
 	ctrl := relay.NewController(logger, queue)
