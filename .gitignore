@@ -19,3 +19,5 @@ examples/go
 !examples/go/main.go
 
 node_modules
+
+.idea/

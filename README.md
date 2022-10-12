@@ -23,14 +23,15 @@ If needed, the `PYROSCOPE_AUTH_TOKEN` can be supplied.
 For a complete list of variables check the section below.
 
 ## Configuration
-| env var                    | default                          | description                                    |
-| -------------------------- | -------------------------------- | ---------------------------------------------- |
-| `PYROSCOPE_REMOTE_ADDRESS` | `https://ingest.pyroscope.cloud` | the pyroscope instance data will be relayed to |
-| `PYROSCOPE_AUTH_TOKEN`     | `""`                             | authorization key (token authentication)       |
-| `PYROSCOPE_SELF_PROFILING` | `false`                          | whether to profile the extension itself or not |
-| `PYROSCOPE_LOG_LEVEL`      | `info`                           | `error` or `info` or `debug` or `trace`        |
-| `PYROSCOPE_TIMEOUT`        | `10s`                            | http client timeout ([go duration format](https://pkg.go.dev/time#Duration))      |
-| `PYROSCOPE_NUM_WORKERS`    | `5`                              | num of relay workers, pick based on the number of profile types |
+| env var                      | default                          | description                                                                     |
+|------------------------------|----------------------------------|---------------------------------------------------------------------------------|
+| `PYROSCOPE_REMOTE_ADDRESS`   | `https://ingest.pyroscope.cloud` | the pyroscope instance data will be relayed to                                  |
+| `PYROSCOPE_AUTH_TOKEN`       | `""`                             | authorization key (token authentication)                                        |
+| `PYROSCOPE_SELF_PROFILING`   | `false`                          | whether to profile the extension itself or not                                  |
+| `PYROSCOPE_LOG_LEVEL`        | `info`                           | `error` or `info` or `debug` or `trace`                                         |
+| `PYROSCOPE_TIMEOUT`          | `10s`                            | http client timeout ([go duration format](https://pkg.go.dev/time#Duration))    |
+| `PYROSCOPE_NUM_WORKERS`      | `5`                              | num of relay workers, pick based on the number of profile types                 |
+| `PYROSCOPE_FLUSH_ON_INVOKE`  | `false`                          | wait for all relay requests to be finished/flushed before next `Invocation` event is allowed |
 
 # How it works
 The profiler will run as normal, and periodically will send data to the relay server (the server running at `http://localhost:4040`).

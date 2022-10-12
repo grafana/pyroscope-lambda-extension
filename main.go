@@ -37,6 +37,8 @@ var (
 
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
+
+	flushOnInvoke = getEnvBool("PYROSCOPE_FLUSH_ON_INVOKE")
 )
 
 func main() {
@@ -82,7 +84,7 @@ func main() {
 		runDevMode(ctx, logger, orch)
 	} else {
 		// Register extension and start listening for events
-		runProdMode(ctx, logger, orch)
+		runProdMode(ctx, logger, orch, queue)
 	}
 }
 
@@ -110,7 +112,7 @@ func runDevMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestra
 	}
 }
 
-func runProdMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestrator) {
+func runProdMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestrator, queue *relay.RemoteQueue) {
 	res, err := extensionClient.Register(ctx, extensionName)
 	if err != nil {
 		panic(err)
@@ -118,9 +120,10 @@ func runProdMode(ctx context.Context, logger *logrus.Entry, orch *relay.Orchestr
 	logger.Trace("Register response", res)
 
 	// Will block until shutdown event is received or cancelled via the context.
-	processEvents(ctx, logger, orch)
+	processEvents(ctx, logger, orch, queue)
 }
-func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestrator) {
+
+func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestrator, queue *relay.RemoteQueue) {
 	log.Debug("Starting processing events")
 
 	shutdown := func() {
@@ -152,6 +155,9 @@ func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestra
 				log.Debug("Received SHUTDOWN event")
 				shutdown()
 				return
+			}
+			if res.EventType == extension.Invoke && flushOnInvoke {
+				queue.Flush()
 			}
 		}
 	}
