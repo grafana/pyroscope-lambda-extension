@@ -18,7 +18,7 @@ const regions: { region: string; archs: Arch[] }[] = [
   { region: "sa-east-1", archs: [] },
   { region: "ca-central-1", archs: [] },
   { region: "ap-southeast-1", archs: ["x86_64", "arm64"] },
-  { region: "ap-southeast-2", archs: [] },
+  { region: "ap-southeast-2", archs: ["x86_64", "arm64"] },
   { region: "eu-central-1", archs: ["x86_64", "arm64"] },
   { region: "us-east-1", archs: ["x86_64", "arm64"] },
   { region: "us-east-2", archs: ["x86_64", "arm64"] },
