@@ -52,8 +52,8 @@ func main() {
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
 		Address:             remoteAddress,
 		AuthToken:           authToken,
-		ScopeOrgId:          scopeOrgId,
-		HttpHeadersJson:     httpHeaders,
+		ScopeOrgID:          scopeOrgId,
+		HTTPHeadersJSON:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
 	})

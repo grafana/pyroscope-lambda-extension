@@ -22,8 +22,8 @@ type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
 	Address             string
 	AuthToken           string
-	ScopeOrgId          string
-	HttpHeadersJson     string
+	ScopeOrgID          string
+	HTTPHeadersJSON     string
 	Timeout             time.Duration
 	MaxIdleConnsPerHost int
 }
@@ -44,8 +44,8 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 		config.MaxIdleConnsPerHost = 5
 	}
 	headers := make(map[string]string)
-	if config.HttpHeadersJson != "" {
-		err := json.Unmarshal([]byte(config.HttpHeadersJson), &headers)
+	if config.HTTPHeadersJSON != "" {
+		err := json.Unmarshal([]byte(config.HTTPHeadersJSON), &headers)
 		if err != nil {
 			log.Error(fmt.Errorf("failed to parse headers json %w", err))
 		}
@@ -68,8 +68,8 @@ func (r *RemoteClient) Send(req *http.Request) error {
 		defer req.Body.Close()
 	}
 	r.enhanceWithAuthToken(req)
-	if r.config.ScopeOrgId != "" {
-		req.Header.Set("X-Scope-OrgID", r.config.ScopeOrgId)
+	if r.config.ScopeOrgID != "" {
+		req.Header.Set("X-Scope-OrgID", r.config.ScopeOrgID)
 	}
 	for k, v := range r.headers {
 		req.Header.Set(k, v)
