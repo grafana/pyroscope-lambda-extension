@@ -1,11 +1,13 @@
 package relay
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -20,14 +22,17 @@ type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
 	Address             string
 	AuthToken           string
+	ScopeOrgId          string
+	HttpHeadersJson     string
 	Timeout             time.Duration
 	MaxIdleConnsPerHost int
 }
 
 type RemoteClient struct {
-	config *RemoteClientCfg
-	client *http.Client
-	log    *logrus.Entry
+	config  *RemoteClientCfg
+	client  *http.Client
+	headers map[string]string
+	log     *logrus.Entry
 }
 
 func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
@@ -37,6 +42,13 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 	}
 	if config.MaxIdleConnsPerHost == 0 {
 		config.MaxIdleConnsPerHost = 5
+	}
+	headers := make(map[string]string)
+	if config.HttpHeadersJson != "" {
+		err := json.Unmarshal([]byte(config.HttpHeadersJson), &headers)
+		if err != nil {
+			log.Error(fmt.Errorf("failed to parse headers json %w", err))
+		}
 	}
 	return &RemoteClient{
 		log:    log,
@@ -56,6 +68,12 @@ func (r *RemoteClient) Send(req *http.Request) error {
 		defer req.Body.Close()
 	}
 	r.enhanceWithAuthToken(req)
+	if r.config.ScopeOrgId != "" {
+		req.Header.Set("X-Scope-OrgID", r.config.ScopeOrgId)
+	}
+	for k, v := range r.headers {
+		req.Header.Set(k, v)
+	}
 
 	host := r.config.Address
 
@@ -64,6 +82,8 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	req.RequestURI = ""
 	req.URL.Host = u.Host
 	req.URL.Scheme = u.Scheme
+	req.URL.User = u.User
+	req.URL.Path = path.Join(u.Path, req.URL.Path)
 	req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 	req.Host = u.Host
 

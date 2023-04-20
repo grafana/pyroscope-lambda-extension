@@ -32,6 +32,7 @@ var (
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
 	authToken  = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
+	scopeOrgId = getEnvStrOr("PYROSCOPE_SCOPE_ORGID", "")
 	timeout    = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
 	numWorkers = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
 
@@ -39,6 +40,8 @@ var (
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
 
 	flushOnInvoke = getEnvBool("PYROSCOPE_FLUSH_ON_INVOKE")
+
+	httpHeaders = getEnvStrOr("PYROSCOPE_HTTP_HEADERS", "")
 )
 
 func main() {
@@ -49,6 +52,8 @@ func main() {
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
 		Address:             remoteAddress,
 		AuthToken:           authToken,
+		ScopeOrgId:          scopeOrgId,
+		HttpHeadersJson:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
 	})
