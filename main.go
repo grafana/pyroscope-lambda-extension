@@ -32,7 +32,7 @@ var (
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
 	authToken  = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
-	scopeOrgId = getEnvStrOr("PYROSCOPE_SCOPE_ORGID", "")
+	scopeOrgID = getEnvStrOr("PYROSCOPE_SCOPE_ORGID", "")
 	timeout    = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
 	numWorkers = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
 
@@ -52,7 +52,7 @@ func main() {
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
 		Address:             remoteAddress,
 		AuthToken:           authToken,
-		ScopeOrgID:          scopeOrgId,
+		ScopeOrgID:          scopeOrgID,
 		HTTPHeadersJSON:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
