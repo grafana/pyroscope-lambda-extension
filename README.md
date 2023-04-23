@@ -34,6 +34,8 @@ For a complete list of variables check the section below.
 | `PYROSCOPE_FLUSH_ON_INVOKE` | `false`                          | wait for all relay requests to be finished/flushed before next `Invocation` event is allowed |
 | `PYROSCOPE_HTTP_HEADERS`    | `{}`                             | extra http headers in json format, for example: {"X-Header": "Value"}                        |
 | `PYROSCOPE_SCOPE_ORGID`     | `""`                             | phlare tenant ID, passed as X-Scope-OrgID http header                                      |
+| `PYROSCOPE_BASIC_AUTH_USER`     | `""` | HTTP basic auth user |
+| `PYROSCOPE_BASIC_AUTH_PASSWORD`     | `""`  | HTTP basic auth password  |
 
 # How it works
 The profiler will run as normal, and periodically will send data to the relay server (the server running at `http://localhost:4040`).
