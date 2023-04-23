@@ -22,6 +22,8 @@ type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
 	Address             string
 	AuthToken           string
+	BasicAuthUser       string
+	BasicAuthPassword   string
 	ScopeOrgID          string
 	HTTPHeadersJSON     string
 	Timeout             time.Duration
@@ -111,5 +113,7 @@ func (r *RemoteClient) enhanceWithAuthToken(req *http.Request) {
 
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
+	} else if r.config.BasicAuthUser != "" && r.config.BasicAuthPassword != "" {
+		req.SetBasicAuth(r.config.BasicAuthUser, r.config.BasicAuthPassword)
 	}
 }
