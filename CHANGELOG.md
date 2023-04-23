@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.3.0...v1.4.0) (2023-04-23)
+
+
+### Features
+
+* relay to phlare ([#21](https://github.com/pyroscope-io/pyroscope-lambda-extension/issues/21)) ([bb9ac34](https://github.com/pyroscope-io/pyroscope-lambda-extension/commit/bb9ac34129d5da5eb0913a4e594dd08de4995087))
+
 ## [1.3.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.2.0...v1.3.0) (2022-10-12)
 
 
