@@ -1,11 +1,13 @@
 package relay
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -20,14 +22,19 @@ type RemoteClientCfg struct {
 	// Address refers to the remote address the request will be made to
 	Address             string
 	AuthToken           string
+	BasicAuthUser       string
+	BasicAuthPassword   string
+	ScopeOrgID          string
+	HTTPHeadersJSON     string
 	Timeout             time.Duration
 	MaxIdleConnsPerHost int
 }
 
 type RemoteClient struct {
-	config *RemoteClientCfg
-	client *http.Client
-	log    *logrus.Entry
+	config  *RemoteClientCfg
+	client  *http.Client
+	headers map[string]string
+	log     *logrus.Entry
 }
 
 func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
@@ -37,6 +44,13 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 	}
 	if config.MaxIdleConnsPerHost == 0 {
 		config.MaxIdleConnsPerHost = 5
+	}
+	headers := make(map[string]string)
+	if config.HTTPHeadersJSON != "" {
+		err := json.Unmarshal([]byte(config.HTTPHeadersJSON), &headers)
+		if err != nil {
+			log.Error(fmt.Errorf("failed to parse headers json %w", err))
+		}
 	}
 	return &RemoteClient{
 		log:    log,
@@ -56,6 +70,12 @@ func (r *RemoteClient) Send(req *http.Request) error {
 		defer req.Body.Close()
 	}
 	r.enhanceWithAuthToken(req)
+	if r.config.ScopeOrgID != "" {
+		req.Header.Set("X-Scope-OrgID", r.config.ScopeOrgID)
+	}
+	for k, v := range r.headers {
+		req.Header.Set(k, v)
+	}
 
 	host := r.config.Address
 
@@ -64,6 +84,8 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	req.RequestURI = ""
 	req.URL.Host = u.Host
 	req.URL.Scheme = u.Scheme
+	req.URL.User = u.User
+	req.URL.Path = path.Join(u.Path, req.URL.Path)
 	req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 	req.Host = u.Host
 
@@ -91,5 +113,7 @@ func (r *RemoteClient) enhanceWithAuthToken(req *http.Request) {
 
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
+	} else if r.config.BasicAuthUser != "" && r.config.BasicAuthPassword != "" {
+		req.SetBasicAuth(r.config.BasicAuthUser, r.config.BasicAuthPassword)
 	}
 }

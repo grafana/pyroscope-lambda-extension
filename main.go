@@ -31,14 +31,19 @@ var (
 	// to where relay data to
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
-	authToken  = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
-	timeout    = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
-	numWorkers = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
+	authToken         = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
+	basicAuthUser     = getEnvStrOr("PYROSCOPE_BASIC_AUTH_USER", "")
+	basicAuthPassword = getEnvStrOr("PYROSCOPE_BASIC_AUTH_PASSWORD", "")
+	scopeOrgID        = getEnvStrOr("PYROSCOPE_SCOPE_ORGID", "")
+	timeout           = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
+	numWorkers        = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
 
 	// profile the extension?
 	selfProfiling = getEnvBool("PYROSCOPE_SELF_PROFILING")
 
 	flushOnInvoke = getEnvBool("PYROSCOPE_FLUSH_ON_INVOKE")
+
+	httpHeaders = getEnvStrOr("PYROSCOPE_HTTP_HEADERS", "")
 )
 
 func main() {
@@ -49,6 +54,10 @@ func main() {
 	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{
 		Address:             remoteAddress,
 		AuthToken:           authToken,
+		BasicAuthUser:       basicAuthUser,
+		BasicAuthPassword:   basicAuthPassword,
+		ScopeOrgID:          scopeOrgID,
+		HTTPHeadersJSON:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
 	})
