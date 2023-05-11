@@ -24,7 +24,7 @@ type RemoteClientCfg struct {
 	AuthToken           string
 	BasicAuthUser       string
 	BasicAuthPassword   string
-	ScopeOrgID          string
+	TenantID            string
 	HTTPHeadersJSON     string
 	Timeout             time.Duration
 	MaxIdleConnsPerHost int
@@ -70,8 +70,8 @@ func (r *RemoteClient) Send(req *http.Request) error {
 		defer req.Body.Close()
 	}
 	r.enhanceWithAuthToken(req)
-	if r.config.ScopeOrgID != "" {
-		req.Header.Set("X-Scope-OrgID", r.config.ScopeOrgID)
+	if r.config.TenantID != "" {
+		req.Header.Set("X-Scope-OrgID", r.config.TenantID)
 	}
 	for k, v := range r.headers {
 		req.Header.Set(k, v)
