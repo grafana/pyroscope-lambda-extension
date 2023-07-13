@@ -34,7 +34,7 @@ var (
 	authToken         = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
 	basicAuthUser     = getEnvStrOr("PYROSCOPE_BASIC_AUTH_USER", "")
 	basicAuthPassword = getEnvStrOr("PYROSCOPE_BASIC_AUTH_PASSWORD", "")
-	scopeOrgID        = getEnvStrOr("PYROSCOPE_SCOPE_ORGID", "")
+	tenantID          = getEnvStrOr("PYROSCOPE_TENANT_ID", "")
 	timeout           = getEnvDurationOr("PYROSCOPE_TIMEOUT", time.Second*10)
 	numWorkers        = getEnvIntOr("PYROSCOPE_NUM_WORKERS", 5)
 
@@ -56,7 +56,7 @@ func main() {
 		AuthToken:           authToken,
 		BasicAuthUser:       basicAuthUser,
 		BasicAuthPassword:   basicAuthPassword,
-		ScopeOrgID:          scopeOrgID,
+		TenantID:            tenantID,
 		HTTPHeadersJSON:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
