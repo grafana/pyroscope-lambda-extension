@@ -36,6 +36,15 @@ For a complete list of variables check the section below.
 | `PYROSCOPE_TENANT_ID`           | `""`                             | phlare tenant ID, passed as X-Scope-OrgID http header                                      |
 | `PYROSCOPE_BASIC_AUTH_USER`     | `""` | HTTP basic auth user |
 | `PYROSCOPE_BASIC_AUTH_PASSWORD` | `""`  | HTTP basic auth password  |
+| `PYROSCOPE_LOG_FORMAT`                  | `"text"`         | format to choose from from `"text"` and `"json"`                                        |
+| `PYROSCOPE_LOG_TIMESTAMP_FORMAT`        | `time.RFC3339`   | logging timestamp format ([go time format](https://golang.org/pkg/time/#pkg-constants)) |
+| `PYROSCOPE_LOG_TIMESTAMP_DISABLE`       | `false`          | disables automatic timestamps in logging output                                         |
+| `PYROSCOPE_LOG_TIMESTAMP_FIELD_NAME`    | `"time"`         | change default field name in logs of automatic timestamps                               |
+| `PYROSCOPE_LOG_LEVEL_FIELD_NAME`        | `"level"`        | change default field name in logs of level                                              |
+| `PYROSCOPE_LOG_MSG_FIELD_NAME`          | `"msg"`          | change default field name in logs of message                                            |
+| `PYROSCOPE_LOG_LOGRUS_ERROR_FIELD_NAME` | `"logrus_error"` | change default field name in logs of logrus error                                       |
+| `PYROSCOPE_LOG_FUNC_FIELD_NAME`         | `"func"`         | change default field name in logs of caller function                                    |
+| `PYROSCOPE_LOG_FILE_FIELD_NAME`         | `"file"`         | change default field name in logs of caller file                                        |
 
 # How it works
 The profiler will run as normal, and periodically will send data to the relay server (the server running at `http://localhost:4040`).
