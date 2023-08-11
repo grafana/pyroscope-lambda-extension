@@ -28,6 +28,22 @@ var (
 	// 'trace' | 'debug' | 'info' | 'error'
 	logLevel = getEnvStrOr("PYROSCOPE_LOG_LEVEL", "info")
 
+	// log format options 'json' | 'text'
+	logFormat = getEnvStrOr("PYROSCOPE_LOG_FORMAT", "text")
+
+	// log timestamp format (default: time.RFC3339), see https://golang.org/pkg/time/#pkg-constants
+	logTsFormat = getEnvStrOr("PYROSCOPE_LOG_TIMESTAMP_FORMAT", time.RFC3339)
+
+	logDisableTs = getEnvBool("PYROSCOPE_LOG_TIMESTAMP_DISABLE")
+
+	// log field names
+	logTsFieldName    = getEnvStrOr("PYROSCOPE_LOG_TIMESTAMP_FIELD_NAME", logrus.FieldKeyTime)
+	logLevelFieldName = getEnvStrOr("PYROSCOPE_LOG_LEVEL_FIELD_NAME", logrus.FieldKeyLevel)
+	logMsgFieldName   = getEnvStrOr("PYROSCOPE_LOG_MSG_FIELD_NAME", logrus.FieldKeyMsg)
+	logErrorFieldName = getEnvStrOr("PYROSCOPE_LOG_LOGRUS_ERROR_FIELD_NAME", logrus.FieldKeyLogrusError)
+	logFuncFieldName  = getEnvStrOr("PYROSCOPE_LOG_FUNC_FIELD_NAME", logrus.FieldKeyFunc)
+	logFileFieldName  = getEnvStrOr("PYROSCOPE_LOG_FILE_FIELD_NAME", logrus.FieldKeyFile)
+
 	// to where relay data to
 	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
 
@@ -106,6 +122,38 @@ func initLogger() *logrus.Entry {
 	}
 
 	logrus.SetLevel(lvl)
+
+	var f logrus.Formatter
+	switch logFormat {
+	case "json":
+		f = &logrus.JSONFormatter{
+			TimestampFormat:  logTsFormat,
+			DisableTimestamp: logDisableTs,
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyTime:        logTsFieldName,
+				logrus.FieldKeyLevel:       logLevelFieldName,
+				logrus.FieldKeyMsg:         logMsgFieldName,
+				logrus.FieldKeyLogrusError: logErrorFieldName,
+				logrus.FieldKeyFunc:        logFuncFieldName,
+				logrus.FieldKeyFile:        logFileFieldName,
+			},
+		}
+	default:
+		f = &logrus.TextFormatter{
+			TimestampFormat:  logTsFormat,
+			DisableTimestamp: logDisableTs,
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyTime:        logTsFieldName,
+				logrus.FieldKeyLevel:       logLevelFieldName,
+				logrus.FieldKeyMsg:         logMsgFieldName,
+				logrus.FieldKeyLogrusError: logErrorFieldName,
+				logrus.FieldKeyFunc:        logFuncFieldName,
+				logrus.FieldKeyFile:        logFileFieldName,
+			},
+		}
+	}
+	logrus.SetFormatter(f)
+
 	return logger
 }
 
