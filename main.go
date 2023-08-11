@@ -140,7 +140,7 @@ func processEvents(ctx context.Context, log *logrus.Entry, orch *relay.Orchestra
 		if err != nil {
 			log.Error("Error while stopping server", err)
 		}
-		log.Error("Exiting")
+		log.Debug("Exiting")
 	}
 
 	for {
