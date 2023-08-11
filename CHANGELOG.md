@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.4.1...v1.5.0) (2023-08-11)
+
+
+### Features
+
+* add optional json logging format for advanced configurations ([#25](https://github.com/grafana/pyroscope-lambda-extension/issues/25)) ([2389785](https://github.com/grafana/pyroscope-lambda-extension/commit/238978539791f2c61f6c9ac86cad372614a6bc0f))
+
+
+### Bug Fixes
+
+* change log level to debug when exiting ([#26](https://github.com/grafana/pyroscope-lambda-extension/issues/26)) ([c3bf02f](https://github.com/grafana/pyroscope-lambda-extension/commit/c3bf02f062f2eabe309f6e8e8aa01eb2192fd566))
+
 ## [1.4.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.4.0...v1.4.1) (2023-07-13)
 
 
