@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.4.0...v1.4.1) (2023-07-13)
+
+
+### Bug Fixes
+
+* rename org_id to tenant_id ([#23](https://github.com/grafana/pyroscope-lambda-extension/issues/23)) ([f21acfc](https://github.com/grafana/pyroscope-lambda-extension/commit/f21acfccdcb1dfac1b9234473b1fc47e87a72f79))
+
 ## [1.4.0](https://github.com/pyroscope-io/pyroscope-lambda-extension/compare/v1.3.0...v1.4.0) (2023-04-23)
 
 
