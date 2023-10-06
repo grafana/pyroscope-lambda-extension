@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.5.0...v1.6.0) (2023-10-06)
+
+
+### Features
+
+* update pyroscope-go ([976cc87](https://github.com/grafana/pyroscope-lambda-extension/commit/976cc87e984ee173203ab3b8e7f89d8e8fccc206))
+
 ## [1.5.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.4.1...v1.5.0) (2023-08-11)
 
 
