@@ -6,7 +6,7 @@ import (
 	"runtime/pprof"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/pyroscope-io/client/pyroscope"
+	"github.com/grafana/pyroscope-go"
 )
 
 type MyEvent struct {

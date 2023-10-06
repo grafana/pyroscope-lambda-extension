@@ -3,7 +3,7 @@ package selfprofiler
 import (
 	"context"
 
-	"github.com/pyroscope-io/client/pyroscope"
+	"github.com/grafana/pyroscope-go"
 	"github.com/sirupsen/logrus"
 )
 
