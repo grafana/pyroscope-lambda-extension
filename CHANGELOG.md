@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.6.0...v1.6.1) (2023-10-25)
+
+
+### Bug Fixes
+
+* relaying error handling ([#30](https://github.com/grafana/pyroscope-lambda-extension/issues/30)) ([815cae0](https://github.com/grafana/pyroscope-lambda-extension/commit/815cae0407880d3d3143584f73e31c58aaba3d98))
+
 ## [1.6.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.5.0...v1.6.0) (2023-10-06)
 
 
