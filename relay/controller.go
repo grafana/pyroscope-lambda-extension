@@ -26,8 +26,13 @@ func NewController(log *logrus.Entry, queue *RemoteQueue) *Controller {
 func (c *Controller) RelayRequest(w http.ResponseWriter, r *http.Request) {
 	// clones the request
 	r2 := r.Clone(context.Background())
-	// TODO(eh-am): handle error
-	body, _ := ioutil.ReadAll(r.Body)
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		c.log.Errorf("Failed to read a request for relay. Error: %+v", err)
+		w.WriteHeader(500)
+		return
+	}
 	r2.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	c.queue.Send(r2)
