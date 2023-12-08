@@ -12,10 +12,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/pyroscope-io/pyroscope-lambda-extension/extension"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/internal/sessionid"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 	"github.com/pyroscope-io/pyroscope-lambda-extension/selfprofiler"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -45,7 +47,7 @@ var (
 	logFileFieldName  = getEnvStrOr("PYROSCOPE_LOG_FILE_FIELD_NAME", logrus.FieldKeyFile)
 
 	// to where relay data to
-	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://ingest.pyroscope.cloud")
+	remoteAddress = getEnvStrOr("PYROSCOPE_REMOTE_ADDRESS", "https://profiles-prod-001.grafana.net")
 
 	authToken         = getEnvStrOr("PYROSCOPE_AUTH_TOKEN", "")
 	basicAuthUser     = getEnvStrOr("PYROSCOPE_BASIC_AUTH_USER", "")
@@ -76,6 +78,7 @@ func main() {
 		HTTPHeadersJSON:     httpHeaders,
 		Timeout:             timeout,
 		MaxIdleConnsPerHost: numWorkers,
+		SessionID:           sessionid.New().String(),
 	})
 	// TODO(eh-am): a find a better default for num of workers
 	queue := relay.NewRemoteQueue(logger, &relay.RemoteQueueCfg{NumWorkers: numWorkers}, remoteClient)
