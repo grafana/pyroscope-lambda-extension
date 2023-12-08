@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.6.1...v1.7.0) (2023-12-08)
+
+
+### Features
+
+* inject session ID in the client ([#32](https://github.com/grafana/pyroscope-lambda-extension/issues/32)) ([56ca696](https://github.com/grafana/pyroscope-lambda-extension/commit/56ca69668b90ee2fb2c6a1c81ecd88298776426c))
+
 ## [1.6.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.6.0...v1.6.1) (2023-10-25)
 
 
