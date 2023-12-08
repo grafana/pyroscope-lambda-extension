@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/pyroscope-io/pyroscope-lambda-extension/internal/sessionid"
 )
 
 var (
@@ -28,13 +30,15 @@ type RemoteClientCfg struct {
 	HTTPHeadersJSON     string
 	Timeout             time.Duration
 	MaxIdleConnsPerHost int
+	SessionID           string
 }
 
 type RemoteClient struct {
-	config  *RemoteClientCfg
-	client  *http.Client
-	headers map[string]string
-	log     *logrus.Entry
+	config    *RemoteClientCfg
+	client    *http.Client
+	headers   map[string]string
+	log       *logrus.Entry
+	sessionID string
 }
 
 func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
@@ -53,8 +57,9 @@ func NewRemoteClient(log *logrus.Entry, config *RemoteClientCfg) *RemoteClient {
 		}
 	}
 	return &RemoteClient{
-		log:    log,
-		config: config,
+		log:       log,
+		config:    config,
+		sessionID: config.SessionID,
 		client: &http.Client{
 			Timeout: timeout,
 			Transport: &http.Transport{
@@ -88,7 +93,7 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	req.URL.Path = path.Join(u.Path, req.URL.Path)
 	req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
 	req.Host = u.Host
-
+	sessionid.InjectToRequest(r.sessionID, req)
 	// TODO(eh-am): check it's a request to /ingest?
 	r.log.Debugf("Making request to %s", req.URL.String())
 	res, err := r.client.Do(req)

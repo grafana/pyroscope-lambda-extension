@@ -8,8 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/pyroscope-io/pyroscope-lambda-extension/internal/flameql"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/internal/sessionid"
+	"github.com/pyroscope-io/pyroscope-lambda-extension/relay"
 )
 
 func TestRemoteClient(t *testing.T) {
@@ -21,10 +25,26 @@ func TestRemoteClient(t *testing.T) {
 	profile := readTestdataFile(t, "testdata/profile.pprof")
 	authToken := "123"
 
+	rcc := &relay.RemoteClientCfg{
+		AuthToken: "123",
+		SessionID: sessionid.New().String(),
+	}
+
 	remoteServer := httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			assert.Equal(t, u.Path, r.URL.Path, "path is mirrored")
-			assert.Equal(t, u.RawQuery, r.URL.RawQuery, "query params are mirrored")
+
+			q := r.URL.Query()
+			parsed, err := flameql.ParseKey(q.Get("name"))
+			require.NoError(t, err)
+			require.Equal(t,
+				rcc.SessionID,
+				parsed.Labels()[sessionid.LabelName],
+				"requests has __session_id__ label")
+
+			delete(parsed.Labels(), sessionid.LabelName)
+			q.Set("name", parsed.Normalized())
+			assert.Equal(t, u.RawQuery, q.Encode(), "query params are mirrored")
 
 			body := &bytes.Buffer{}
 			body.ReadFrom(r.Body)
@@ -34,7 +54,8 @@ func TestRemoteClient(t *testing.T) {
 		}),
 	)
 
-	remoteClient := relay.NewRemoteClient(logger, &relay.RemoteClientCfg{Address: remoteServer.URL, AuthToken: "123"})
+	rcc.Address = remoteServer.URL
+	remoteClient := relay.NewRemoteClient(logger, rcc)
 
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(profile))
 	assert.NoError(t, err)
