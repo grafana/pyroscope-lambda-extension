@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: asdf_install
-        uses: asdf-vm/actions/install@v1
+        uses: asdf-vm/actions/install@v3
       - run: make clean
       - run: make build-amd
       - run: make build-arm
