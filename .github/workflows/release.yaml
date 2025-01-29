@@ -4,13 +4,15 @@ name: Release
 on:
   release:
     types: [published]
-  # for manual invokations
-  workflow_dispatch:
-    # not really used
-    inputs:
-      # the release tag automatically created
-      tag_name:
-        type: string
+
+# FIXME(kolesnikovae):
+#  # for manual invocations
+#  workflow_dispatch:
+#    # not really used
+#    inputs:
+#      # the release tag automatically created
+#      tag_name:
+#        type: string
 
 jobs:
   publish:
