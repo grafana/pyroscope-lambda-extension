@@ -1,7 +1,8 @@
 package relay_test
 
 import (
-	"io/ioutil"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/sirupsen/logrus"
@@ -10,13 +11,13 @@ import (
 
 func noopLogger() *logrus.Entry {
 	logger := logrus.New()
-	logger.SetOutput(ioutil.Discard)
+	logger.SetOutput(io.Discard)
 
 	return logger.WithFields(logrus.Fields{})
 }
 
 func readTestdataFile(t *testing.T, name string) []byte {
-	f, err := ioutil.ReadFile(name)
+	f, err := os.ReadFile(name)
 	assert.NoError(t, err)
 	return f
 }

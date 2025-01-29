@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: asdf_install
-        uses: asdf-vm/actions/install@v1
+        uses: asdf-vm/actions/install@v3.0.2
       - run: make install-dev-tools
       # Make asdf aware of globally installed binaries
       - run: asdf reshim
@@ -35,5 +35,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: asdf_install
-        uses: asdf-vm/actions/install@v1
+        uses: asdf-vm/actions/install@v3.0.2
       - run: make shellcheck

@@ -3,7 +3,7 @@ package relay
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -27,13 +27,13 @@ func (c *Controller) RelayRequest(w http.ResponseWriter, r *http.Request) {
 	// clones the request
 	r2 := r.Clone(context.Background())
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		c.log.Errorf("Failed to read a request for relay. Error: %+v", err)
 		w.WriteHeader(500)
 		return
 	}
-	r2.Body = ioutil.NopCloser(bytes.NewReader(body))
+	r2.Body = io.NopCloser(bytes.NewReader(body))
 
 	c.queue.Send(r2)
 	w.WriteHeader(200)
