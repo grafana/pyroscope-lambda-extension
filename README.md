@@ -109,7 +109,12 @@ aws lambda publish-layer-version \
   --zip-file "fileb://extension.zip"
 ```
 
-# Publishing
-```
-deno run --allow-env --allow-read --allow-run scripts/publish.ts --name=pyroscope-extension --dry-run=false
-```
+# Releasing
+
+Releases are managed by [`release-please`](https://github.com/googleapis/release-please). It assumes you are using [Conventional Commit messages].
+
+The most important prefixes you should have in mind are:
+
+ * `fix:` which represents bug fixes, and correlates to a SemVer patch.
+ * `feat:` which represents a new feature, and correlates to a SemVer minor.
+ * `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.
