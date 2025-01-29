@@ -1,8 +1,6 @@
 module github.com/pyroscope-io/pyroscope-lambda-extension
 
-go 1.21
-
-toolchain go1.21.0
+go 1.21.13
 
 require (
 	github.com/aws/aws-lambda-go v1.32.0
