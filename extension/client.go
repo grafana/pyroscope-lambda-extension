@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -94,7 +94,7 @@ func (e *Client) Register(ctx context.Context, filename string) (*RegisterRespon
 		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
 	}
 	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
+	body, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (e *Client) NextEvent(ctx context.Context) (*NextEventResponse, error) {
 		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
 	}
 	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
+	body, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (e *Client) InitError(ctx context.Context, errorType string) (*StatusRespon
 		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
 	}
 	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
+	body, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (e *Client) ExitError(ctx context.Context, errorType string) (*StatusRespon
 		return nil, fmt.Errorf("request failed with status %s", httpRes.Status)
 	}
 	defer httpRes.Body.Close()
-	body, err := ioutil.ReadAll(httpRes.Body)
+	body, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return nil, err
 	}

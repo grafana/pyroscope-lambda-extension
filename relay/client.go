@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -103,7 +103,7 @@ func (r *RemoteClient) Send(req *http.Request) error {
 	defer res.Body.Close()
 
 	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
-		respBody, _ := ioutil.ReadAll(res.Body)
+		respBody, _ := io.ReadAll(res.Body)
 		return fmt.Errorf("%w: %v", ErrNotOkResponse, fmt.Errorf("status code: '%d'. body: '%s'", res.StatusCode, respBody))
 	}
 
