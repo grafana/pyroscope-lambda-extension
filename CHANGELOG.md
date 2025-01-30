@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.7.0...v1.7.1) (2025-01-30)
+
+
+### Bug Fixes
+
+* deprecate release-please manual workflow ([#37](https://github.com/grafana/pyroscope-lambda-extension/issues/37)) ([e5c72d6](https://github.com/grafana/pyroscope-lambda-extension/commit/e5c72d61c1a6259f0cb36e27db3df01db5116f6f))
+
 ## [1.7.0](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.6.1...v1.7.0) (2023-12-08)
 
 
