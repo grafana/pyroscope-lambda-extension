@@ -14,13 +14,18 @@ on:
 #      tag_name:
 #        type: string
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          persist-credentials: 'false'
       - name: asdf_install
-        uses: asdf-vm/actions/install@v3.0.2
+        uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6 # v3.0.2
       - run: make clean
       - run: make build-amd
       - run: make build-arm
@@ -34,7 +39,7 @@ jobs:
       # use tag_name if available (ie manual invokation)
       - if: ${{ inputs.tag_name == '' }}
         id: update_release_auto
-        uses: tubone24/update_release@v1.3.1
+        uses: tubone24/update_release@c04c17054b939144ec8a7cba969d74992f812d66 # v1.3.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -42,7 +47,7 @@ jobs:
           is_append_body: true
       - if: ${{ inputs.tag_name != '' }}
         id: update_release_manual
-        uses: tubone24/update_release@v1.3.1
+        uses: tubone24/update_release@c04c17054b939144ec8a7cba969d74992f812d66 # v1.3.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ inputs.tag_name }}
