@@ -3,12 +3,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 name: release-please
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: googleapis/release-please-action@a02a34c4d625f9be7cb89156071d8567266a2445 # v4.2.0
         with:
           release-type: go
           package-name: pyroscope-lambda-extension

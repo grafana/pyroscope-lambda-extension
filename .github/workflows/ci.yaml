@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -16,8 +19,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          persist-credentials: 'false'
       - name: asdf_install
-        uses: asdf-vm/actions/install@v3.0.2
+        uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6 # v3.0.2
       - run: make install-dev-tools
       # Make asdf aware of globally installed binaries
       - run: asdf reshim
@@ -34,6 +39,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+          persist-credentials: 'false'
       - name: asdf_install
-        uses: asdf-vm/actions/install@v3.0.2
+        uses: asdf-vm/actions/install@05e0d2ed97b598bfce82fd30daf324ae0c4570e6 # v3.0.2
       - run: make shellcheck
