@@ -3,7 +3,7 @@ module github.com/pyroscope-io/pyroscope-lambda-extension
 go 1.22.9
 
 require (
-	github.com/aws/aws-lambda-go v1.32.0
+	github.com/aws/aws-lambda-go v1.50.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/grafana/pyroscope-go v1.2.0
 	github.com/mgechev/revive v1.2.1
