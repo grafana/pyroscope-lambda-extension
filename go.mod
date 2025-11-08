@@ -1,6 +1,8 @@
 module github.com/pyroscope-io/pyroscope-lambda-extension
 
-go 1.22.9
+go 1.24.0
+
+toolchain go1.24.10
 
 require (
 	github.com/aws/aws-lambda-go v1.32.0
@@ -9,7 +11,7 @@ require (
 	github.com/mgechev/revive v1.2.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.10.0
+	golang.org/x/sync v0.18.0
 	honnef.co/go/tools v0.5.1
 )
 
