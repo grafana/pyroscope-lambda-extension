@@ -1,6 +1,6 @@
 module github.com/pyroscope-io/pyroscope-lambda-extension
 
-go 1.22.9
+go 1.25.0
 
 require (
 	github.com/aws/aws-lambda-go v1.32.0
@@ -9,8 +9,8 @@ require (
 	github.com/mgechev/revive v1.2.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.10.0
-	honnef.co/go/tools v0.5.1
+	golang.org/x/sync v0.19.0
+	honnef.co/go/tools v0.7.0
 )
 
 require (
@@ -29,9 +29,9 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250128182459-e0ece0dbea4c // indirect
-	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/tools v0.29.0 // indirect
+	golang.org/x/mod v0.31.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/tools v0.40.1-0.20260108161641-ca281cf95054 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
