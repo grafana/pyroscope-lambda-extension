@@ -7,8 +7,8 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/grafana/pyroscope-go v1.2.0
 	github.com/mgechev/revive v1.2.1
-	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.9.0
+	github.com/sirupsen/logrus v1.9.4
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/sync v0.10.0
 	honnef.co/go/tools v0.5.1
 )
