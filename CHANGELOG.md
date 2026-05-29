@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.8.0](https://github.com/grafana/pyroscope-lambda-extension/compare/pyroscope-lambda-extension-v1.7.1...pyroscope-lambda-extension-v1.8.0) (2026-05-29)
+
+
+### Features
+
+* add optional json logging format for advanced configurations ([#25](https://github.com/grafana/pyroscope-lambda-extension/issues/25)) ([2389785](https://github.com/grafana/pyroscope-lambda-extension/commit/238978539791f2c61f6c9ac86cad372614a6bc0f))
+* allow NUM_WORKERS to be configurable ([#12](https://github.com/grafana/pyroscope-lambda-extension/issues/12)) ([efbe468](https://github.com/grafana/pyroscope-lambda-extension/commit/efbe4680175be80f4db2d0ce0e3b301443d8201e))
+* allow timeout to be configurable ([#16](https://github.com/grafana/pyroscope-lambda-extension/issues/16)) ([8f80d90](https://github.com/grafana/pyroscope-lambda-extension/commit/8f80d9071e352362df82dbecabb8b086494beaac))
+* flush queue before next event polling ([#18](https://github.com/grafana/pyroscope-lambda-extension/issues/18)) ([e5b06d2](https://github.com/grafana/pyroscope-lambda-extension/commit/e5b06d2e38d174daa52828e45fb7783700bd86ee))
+* initial version ([#1](https://github.com/grafana/pyroscope-lambda-extension/issues/1)) ([31471b4](https://github.com/grafana/pyroscope-lambda-extension/commit/31471b4fd059f511720baf6dba2e04a7236083ca))
+* inject session ID in the client ([#32](https://github.com/grafana/pyroscope-lambda-extension/issues/32)) ([56ca696](https://github.com/grafana/pyroscope-lambda-extension/commit/56ca69668b90ee2fb2c6a1c81ecd88298776426c))
+* relay to phlare ([#21](https://github.com/grafana/pyroscope-lambda-extension/issues/21)) ([bb9ac34](https://github.com/grafana/pyroscope-lambda-extension/commit/bb9ac34129d5da5eb0913a4e594dd08de4995087))
+* update pyroscope-go ([976cc87](https://github.com/grafana/pyroscope-lambda-extension/commit/976cc87e984ee173203ab3b8e7f89d8e8fccc206))
+
+
+### Bug Fixes
+
+* change log level to debug when exiting ([#26](https://github.com/grafana/pyroscope-lambda-extension/issues/26)) ([c3bf02f](https://github.com/grafana/pyroscope-lambda-extension/commit/c3bf02f062f2eabe309f6e8e8aa01eb2192fd566))
+* configure MaxIdleConnsPerHost (was 2 by default) ([#19](https://github.com/grafana/pyroscope-lambda-extension/issues/19)) ([9214f26](https://github.com/grafana/pyroscope-lambda-extension/commit/9214f26e2e1b4ae460981ab1f09f01c6ac92f201))
+* deprecate release-please manual workflow ([#37](https://github.com/grafana/pyroscope-lambda-extension/issues/37)) ([e5c72d6](https://github.com/grafana/pyroscope-lambda-extension/commit/e5c72d61c1a6259f0cb36e27db3df01db5116f6f))
+* Fixing the release-please action ([#49](https://github.com/grafana/pyroscope-lambda-extension/issues/49)) ([78af369](https://github.com/grafana/pyroscope-lambda-extension/commit/78af36991a946c96e942be13535d2b46f07da897))
+* relaying error handling ([#30](https://github.com/grafana/pyroscope-lambda-extension/issues/30)) ([815cae0](https://github.com/grafana/pyroscope-lambda-extension/commit/815cae0407880d3d3143584f73e31c58aaba3d98))
+* remove ap-northeast{2,3} arm builds ([#8](https://github.com/grafana/pyroscope-lambda-extension/issues/8)) ([88501e9](https://github.com/grafana/pyroscope-lambda-extension/commit/88501e9ea03ab9fc1dcdf673ba341279679afc73))
+* rename org_id to tenant_id ([#23](https://github.com/grafana/pyroscope-lambda-extension/issues/23)) ([f21acfc](https://github.com/grafana/pyroscope-lambda-extension/commit/f21acfccdcb1dfac1b9234473b1fc47e87a72f79))
+* **security/unknown:** update module golang.org/x/sys to v0.44.0 [security] ([#60](https://github.com/grafana/pyroscope-lambda-extension/issues/60)) ([26fe56f](https://github.com/grafana/pyroscope-lambda-extension/commit/26fe56f1f267aed527c080d5c296463ba4b9a540))
+* set architecture when publishing ([#6](https://github.com/grafana/pyroscope-lambda-extension/issues/6)) ([ae3372f](https://github.com/grafana/pyroscope-lambda-extension/commit/ae3372f4697a1d97246c0eb73448bf752ec370a1))
+* use format string in Fatalf to fix go vet error ([#71](https://github.com/grafana/pyroscope-lambda-extension/issues/71)) ([b1c8ca5](https://github.com/grafana/pyroscope-lambda-extension/commit/b1c8ca5d0f4a1a803b5798e4c2adb98b8da2082d))
+
 ## [1.7.1](https://github.com/grafana/pyroscope-lambda-extension/compare/v1.7.0...v1.7.1) (2025-01-30)
 
 
