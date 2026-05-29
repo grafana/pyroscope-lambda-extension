@@ -28,7 +28,7 @@ func newAsyncJob(t *testing.T, name string, f func()) *asyncJob {
 func (j *asyncJob) assertNotFinished() {
 	locked := j.m.TryLock()
 	if locked {
-		j.t.Fatalf("should be still working... " + j.name)
+		j.t.Fatalf("should be still working... %s", j.name)
 	}
 }
 
